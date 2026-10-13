@@ -1,0 +1,21 @@
+# PlatformIO temporary and build files
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.bak
+*~
+
+# Compiled Object files and binaries
+*.o
+*.elf
+*.bin
+*.hex
+
+# OS files
+.DS_Store
+Thumbs.db
