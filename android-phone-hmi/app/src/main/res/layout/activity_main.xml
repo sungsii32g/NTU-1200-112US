@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_dark">
+
+    <!-- 頂部常駐狀態列 -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:background="@color/panel_dark"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvModelTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/model_name"
+            android:textColor="@color/text_primary"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvConnectionStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:background="#1B232E"
+            android:paddingStart="10dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="3dp"
+            android:text="@string/status_disconnected"
+            android:textColor="@color/status_orange"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvPowerPathBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:background="#152B20"
+            android:paddingStart="10dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="3dp"
+            android:text="路徑: 待命"
+            android:textColor="@color/status_green"
+            android:textSize="13sp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/btnToggleVoice"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="語音: 開"
+            android:textColor="@color/status_cyan"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvClock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="12:00:00"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:fontFamily="monospace" />
+    </LinearLayout>
+
+    <!-- 中央分頁顯示容器 (ViewFlipper) -->
+    <ViewFlipper
+        android:id="@+id/viewFlipper"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topBar">
+
+        <!-- 分頁 1：總覽儀表板 (Dashboard) -->
+        <LinearLayout
+            android:id="@+id/pageDashboard"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <!-- 卡片 1：電池 DC 輸入 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@color/panel_surface"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/card_battery_title"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <FrameLayout
+                    android:layout_width="140dp"
+                    android:layout_height="140dp"
+                    android:layout_marginTop="8dp">
+
+                    <com.meanwell.ntu1200.ui.view.GaugeArcView
+                        android:id="@+id/gaugeBattery"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <TextView
+                        android:id="@+id/tvBatteryVoltage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="— V"
+                        android:textColor="@color/text_primary"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvBatteryStatusDesc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/battery_normal"
+                    android:textColor="@color/status_green"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- 卡片 2：電力潮流與狀態 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="4dp"
+                android:layout_weight="1.2"
+                android:background="@color/panel_surface"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/card_power_flow_title"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <com.meanwell.ntu1200.ui.view.PowerFlowView
+                    android:id="@+id/powerFlowView"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tvTemperature"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="溫度: — °C (正常)"
+                    android:textColor="@color/status_cyan"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- 卡片 3：交流 AC 輸出 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@color/panel_surface"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/card_ac_output_title"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <FrameLayout
+                    android:layout_width="140dp"
+                    android:layout_height="140dp"
+                    android:layout_marginTop="8dp">
+
+                    <com.meanwell.ntu1200.ui.view.GaugeArcView
+                        android:id="@+id/gaugeLoad"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <TextView
+                        android:id="@+id/tvLoadPct"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="— %"
+                        android:textColor="@color/text_primary"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvAcOutputInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="輸出: — V / — Hz"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvLoadWatts"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="功率: — W (額定1200W)"
+                    android:textColor="@color/status_orange"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 分頁 2：即時數據與趨勢 (Trends) -->
+        <LinearLayout
+            android:id="@+id/pageTrends"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="電力遙測數據全覽 (CSV 日誌定時儲存)"
+                android:textColor="@color/status_cyan"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvTelemetryTable"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="8dp"
+                android:layout_weight="1"
+                android:background="@color/panel_surface"
+                android:fontFamily="monospace"
+                android:padding="12dp"
+                android:text="遙測歷史紀錄準備中..."
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/btnExportCsv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="匯出本機今日 CSV 日誌" />
+        </LinearLayout>
+
+        <!-- 分頁 3：模式與安全控制 (Control) -->
+        <LinearLayout
+            android:id="@+id/pageControl"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠️ 高功率寫入控制區 (三道安全互鎖)"
+                android:textColor="@color/status_orange"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="依工程守則，所有寫入命令預設為唯讀鎖定。需先解鎖工程鎖，並執行二次確認。"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnUnlockEngineering"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="解鎖工程控制鎖" />
+
+                <Button
+                    android:id="@+id/btnInverterSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="開關逆變輸出 (C指令)" />
+
+                <Button
+                    android:id="@+id/btnSavingModeSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="節能模式開關 (W指令)" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 分頁 4：告警與語音 (Alarms) -->
+        <LinearLayout
+            android:id="@+id/pageAlarms"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="告警規則與推播設定 (TTS 中文語音 / Webhook)"
+                android:textColor="@color/status_cyan"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvAlarmRulesDesc"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="8dp"
+                android:layout_weight="1"
+                android:background="@color/panel_surface"
+                android:padding="12dp"
+                android:text="• 低壓警報門檻：11.0V (橘色預警，TTS播報)\n• 低壓切斷門檻：10.0V (紅色急報，TTS播報，推播)\n• 高壓警報門檻：15.5V\n• 市電斷電切換：自動發送 Webhook 通知\n• 通訊中斷偵測：1.5秒逾時變灰"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/btnTestTtsVoice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="測試真人 TTS 中文語音告警" />
+        </LinearLayout>
+
+        <!-- 分頁 5：通訊診斷與工程設定 (Debug) -->
+        <LinearLayout
+            android:id="@+id/pageDebug"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvDebugSerialStats"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="TX: 0 | RX: 0 | 超時: 0 | 9600-8-N-1"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp" />
+
+                <Button
+                    android:id="@+id/btnToggleDemoMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="啟用 DEMO 模擬"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvRawMonitor"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="8dp"
+                android:layout_weight="1"
+                android:background="@color/panel_surface"
+                android:fontFamily="monospace"
+                android:padding="10dp"
+                android:text="通訊監視器就緒..."
+                android:textColor="@color/status_green"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnTestQueryStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btn_single_read_test" />
+
+                <Button
+                    android:id="@+id/btnTestQueryInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/btn_single_info_test" />
+            </LinearLayout>
+        </LinearLayout>
+    </ViewFlipper>
+
+    <!-- 底部常駐導航列 (5 大分頁) -->
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:background="@color/panel_dark"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <Button
+            android:id="@+id/navDashboard"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/tab_dashboard"
+            android:textColor="@color/status_cyan"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/navTrends"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/tab_trends"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/navControl"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/tab_control"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/navAlarms"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/tab_alarms"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/navDebug"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/tab_debug"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- 60 秒無操作防烙印待機半透明保護層 -->
+    <View
+        android:id="@+id/viewBurnInOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/burn_in_dim_overlay"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

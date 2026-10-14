@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 工業暗黑背景 (AMOLED 極致省電與防烙印) -->
+    <color name="bg_dark">#000000</color>
+    <color name="panel_dark">#0F141C</color>
+    <color name="panel_surface">#18202C</color>
+    <color name="panel_border">#2A3649</color>
+
+    <!-- 狀態語義配色 -->
+    <color name="status_green">#00E676</color>
+    <color name="status_green_dim">#1B5E20</color>
+    <color name="status_orange">#FF9100</color>
+    <color name="status_orange_dim">#E65100</color>
+    <color name="status_red">#FF1744</color>
+    <color name="status_red_dim">#B71C1C</color>
+    <color name="status_cyan">#00E5FF</color>
+    <color name="status_blue">#2979FF</color>
+    <color name="status_stale_gray">#757575</color>
+
+    <!-- 文字色調 -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#90A4AE</color>
+    <color name="text_tertiary">#546E7A</color>
+
+    <!-- 防烙印待機半透明色調 -->
+    <color name="burn_in_dim_overlay">#CC000000</color>
+</resources>

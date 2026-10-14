@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NTU-1200 觸控面板</string>
+    <string name="model_name">NTU-1200-112US</string>
+
+    <!-- 導航分頁 -->
+    <string name="tab_dashboard">1. 總覽儀表</string>
+    <string name="tab_trends">2. 趨勢曲線</string>
+    <string name="tab_control">3. 模式與控制</string>
+    <string name="tab_alarms">4. 告警與語音</string>
+    <string name="tab_debug">5. 通訊診斷</string>
+
+    <!-- 連線狀態 -->
+    <string name="status_connected">● 已連線</string>
+    <string name="status_disconnected">○ 尚未連線</string>
+    <string name="status_stale">資料已過期 (STALE)</string>
+    <string name="status_demo">【DEMO 模擬模式】</string>
+
+    <!-- 頂部與面板項目 -->
+    <string name="path_utility_bypass">市電旁路 (UPS)</string>
+    <string name="path_inverter_battery">電池逆變 (DC-AC)</string>
+    <string name="path_standby">待機模式</string>
+    <string name="path_fault">故障異常</string>
+
+    <string name="card_battery_title">【 電池 DC 輸入 】</string>
+    <string name="card_power_flow_title">【 電力潮流與狀態 】</string>
+    <string name="card_ac_output_title">【 交流 AC 輸出 】</string>
+
+    <string name="battery_normal">狀態: 正常 (10.0~16.5V)</string>
+    <string name="battery_low_warning">警告: 電池低壓預警</string>
+    <string name="battery_low_shutdown">危險: 電池低壓切斷</string>
+    <string name="battery_high_warning">警告: 電池過壓保護</string>
+
+    <string name="btn_hold_to_control">長按 1.5 秒執行控制</string>
+    <string name="btn_single_read_test">單發 Q 唯讀測試</string>
+    <string name="btn_single_info_test">單發 I 資訊測試</string>
+</resources>

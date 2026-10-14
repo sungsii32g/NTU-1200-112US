@@ -3,9 +3,21 @@
 .pioenvs/
 .piolibdeps/
 
+# Android & Gradle build files
+.gradle/
+build/
+**/build/
+*.apk
+*.ap_
+*.aab
+*.aar
+local.properties
+.cxx/
+
 # IDE files
 .vscode/
 .idea/
+*.iml
 *.swp
 *.bak
 *~
@@ -15,6 +27,7 @@
 *.elf
 *.bin
 *.hex
+*.class
 
 # OS files
 .DS_Store
