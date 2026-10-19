@@ -10,8 +10,8 @@ namespace Ntu1200Hmi.Services;
 public class SerialManager
 {
     private const int BaudRate = 9600;
-    private const int PollIntervalMs = 500; // >= 500ms 明緯原廠輪詢規範
-    private const int ReadTimeoutMs = 150;  // 150ms 典型回應逾時
+    public int PollIntervalMs { get; set; } = 500; // >= 500ms 明緯原廠輪詢規範 (可動態調整 500, 1000, 2000)
+    public int ReadTimeoutMs { get; set; } = 200;  // 典型回應逾時
     private const double StaleThresholdSec = 1.5;
 
     private SerialPort? _serialPort;
@@ -32,11 +32,25 @@ public class SerialManager
     private DateTime _lastReceivedTime = DateTime.MinValue;
     private int _mockStep = 0;
     private readonly string _logDir;
+    public string LogDirectory => _logDir;
 
     public SerialManager()
     {
         _logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
         Directory.CreateDirectory(_logDir);
+    }
+
+    public void OpenLogFolder()
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = _logDir,
+                UseShellExecute = true
+            });
+        }
+        catch { }
     }
 
     public List<PortInfo> GetAvailablePorts()

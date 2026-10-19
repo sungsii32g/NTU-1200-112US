@@ -278,7 +278,81 @@
         </div>
       </section>
 
-      <!-- 2. 輸出電壓與頻率配置矩陣 -->
+      <!-- 2. 一鍵工程情境切換 (Scenario Profiles) -->
+      <section class="card">
+        <div class="card-header">
+          <h2>⚡ 一鍵工程情境切換 (Engineering Scenario Profiles)</h2>
+          <span class="terminal-hint">免翻手冊，自動依序執行解鎖、電壓/頻率配置、輸出與節能設定</span>
+        </div>
+        <div class="scenario-grid">
+          <!-- 情境 1 -->
+          <div class="scenario-card" id="cardScenarioStandard">
+            <div>
+              <div class="scenario-header">
+                <span class="scenario-icon">⚡</span>
+                <span class="scenario-badge scenario-badge-cyan">110V 60Hz</span>
+              </div>
+              <div class="scenario-title">標準商用 110V/60Hz</div>
+              <div class="scenario-desc">台美常規用電標準。自動解鎖並寫入 110V/60Hz、啟動交流輸出 (C 1) 並關閉節能待機 (W 0)。</div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:0.75rem; width:100%;">套用標準情境</button>
+          </div>
+
+          <!-- 情境 2 -->
+          <div class="scenario-card" id="cardScenarioGreen">
+            <div>
+              <div class="scenario-header">
+                <span class="scenario-icon">🌿</span>
+                <span class="scenario-badge scenario-badge-green">節能 UPS</span>
+              </div>
+              <div class="scenario-title">綠能省電模式 (UPS)</div>
+              <div class="scenario-desc">市電斷電備援。開啟 110V 輸出並啟用低負載休眠 (W 1)，無負載時僅消耗 1.5W，延長電池壽命。</div>
+            </div>
+            <button class="btn btn-success" style="margin-top:0.75rem; width:100%;">套用綠能情境</button>
+          </div>
+
+          <!-- 情境 3 -->
+          <div class="scenario-card" id="cardScenario120V">
+            <div>
+              <div class="scenario-header">
+                <span class="scenario-icon">🌎</span>
+                <span class="scenario-badge scenario-badge-blue">120V 60Hz</span>
+              </div>
+              <div class="scenario-title">北美大功率 120V/60Hz</div>
+              <div class="scenario-desc">適用美規工具與大功率負載。自動解鎖並配置 120V 輸出，啟動交流逆變，提供穩定高電壓輸出。</div>
+            </div>
+            <button class="btn btn-outline" style="margin-top:0.75rem; width:100%;">套用北美情境</button>
+          </div>
+
+          <!-- 情境 4 -->
+          <div class="scenario-card" id="cardScenario100V">
+            <div>
+              <div class="scenario-header">
+                <span class="scenario-icon">🇯🇵</span>
+                <span class="scenario-badge scenario-badge-amber">100V 50Hz</span>
+              </div>
+              <div class="scenario-title">日本東部 100V/50Hz</div>
+              <div class="scenario-desc">日本東部 (東京) 原裝進口精密儀器或電器專用標準。自動解鎖並配置 100V/50Hz 精準純正弦波。</div>
+            </div>
+            <button class="btn btn-outline" style="margin-top:0.75rem; width:100%;">套用日規情境</button>
+          </div>
+
+          <!-- 情境 5 -->
+          <div class="scenario-card" id="cardScenarioEmergencyStop">
+            <div>
+              <div class="scenario-header">
+                <span class="scenario-icon">🛑</span>
+                <span class="scenario-badge scenario-badge-red">安全切斷</span>
+              </div>
+              <div class="scenario-title">緊急關斷所有輸出</div>
+              <div class="scenario-desc">現場遇到過載或緊急異常時，一鍵立即發送 C 0 切斷 110V 輸出，迅速保護設備與人員安全。</div>
+            </div>
+            <button class="btn btn-danger" style="margin-top:0.75rem; width:100%;">立即緊急切斷</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 輸出電壓與頻率配置矩陣 -->
       <section class="card">
         <div class="card-header">
           <h2>⚙️ 交流輸出電壓與頻率配置 (Voltage & Frequency Setting Matrix)</h2>
@@ -314,7 +388,78 @@
         </div>
       </section>
 
-      <!-- 3. 原廠硬體規格認證與設備型號查詢 -->
+      <!-- 4. 系統安全警戒門檻與通訊節奏自訂 -->
+      <section class="card">
+        <div class="card-header">
+          <h2>🛡️ 系統安全警戒門檻與通訊節奏自訂 (Custom Alarm Setpoints & Polling)</h2>
+          <span class="terminal-hint">可直接微調各項警報觸發數值，支援即時評估與蜂鳴器警報</span>
+        </div>
+        <p class="section-desc">依據現場電池容量或特定設備負載微調告警數值，避免誤報並精準保護電池組：</p>
+        <div class="setpoints-grid">
+          <div class="setpoint-card">
+            <span class="setpoint-label">電池低壓預警門檻</span>
+            <div class="setpoint-input-group">
+              <input type="number" id="setpointLowWarn" class="setpoint-input" value="11.0" step="0.1" min="9.0" max="14.0" />
+              <span class="setpoint-unit">V</span>
+            </div>
+          </div>
+          <div class="setpoint-card">
+            <span class="setpoint-label">電池低壓關斷門檻</span>
+            <div class="setpoint-input-group">
+              <input type="number" id="setpointLowCutoff" class="setpoint-input" value="10.0" step="0.1" min="9.0" max="13.0" />
+              <span class="setpoint-unit">V</span>
+            </div>
+          </div>
+          <div class="setpoint-card">
+            <span class="setpoint-label">電池高壓過壓門檻</span>
+            <div class="setpoint-input-group">
+              <input type="number" id="setpointHighWarn" class="setpoint-input" value="15.5" step="0.1" min="14.0" max="18.0" />
+              <span class="setpoint-unit">V</span>
+            </div>
+          </div>
+          <div class="setpoint-card">
+            <span class="setpoint-label">負載過載警戒門檻</span>
+            <div class="setpoint-input-group">
+              <input type="number" id="setpointOverload" class="setpoint-input" value="1200" step="50" min="500" max="2000" />
+              <span class="setpoint-unit">W</span>
+            </div>
+          </div>
+          <div class="setpoint-card">
+            <span class="setpoint-label">散熱器溫度預警門檻</span>
+            <div class="setpoint-input-group">
+              <input type="number" id="setpointTemp" class="setpoint-input" value="55.0" step="1" min="35" max="80" />
+              <span class="setpoint-unit">°C</span>
+            </div>
+          </div>
+          <div class="setpoint-card">
+            <span class="setpoint-label">RS-232 輪詢頻率</span>
+            <div class="setpoint-input-group">
+              <select id="selectPollRate" class="styled-select" style="width:100%; padding:0.35rem 0.6rem;">
+                <option value="500" selected>500 ms (高速即時)</option>
+                <option value="1000">1000 ms (標準平衡)</option>
+                <option value="2000">2000 ms (低負載節能)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="setpoints-actions-bar">
+          <label class="toggle-switch-label">
+            <input type="checkbox" id="chkAudioAlert" checked />
+            <span>🔊 啟用異常蜂鳴器音效警報 (Web Audio Alert)</span>
+          </label>
+          <div style="display:flex; gap:0.75rem;">
+            <button id="btnExportCsv" class="btn btn-secondary" title="將當前趨勢與遙測記錄匯出為 CSV 試算表">
+              📥 匯出歷程 CSV
+            </button>
+            <button id="btnSaveSetpoints" class="btn btn-primary" title="套用門檻至即時監控系統">
+              💾 儲存自訂門檻
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 原廠硬體規格認證與設備型號查詢 -->
       <div class="engineering-grid">
         <!-- 規格表 -->
         <section class="card">
@@ -342,10 +487,10 @@
         </section>
       </div>
 
-      <!-- 4. 19-Bit 狀態旗標與硬體診斷指示燈矩陣 -->
+      <!-- 6. 19-Bit 狀態旗標與硬體診斷指示燈矩陣 -->
       <section class="card">
         <div class="card-header">
-          <h2>💡 19-Bit 硬體狀態與保護診斷矩陣 (逐位元即時監測)</h2>
+          <h2>💡 19-Bit 硬體狀態與保護診斷矩陣 (點擊任一項目查看排錯 SOP 與成因分析)</h2>
           <span class="terminal-hint">綠燈=運作中 / 紅燈=異常警報 / 暗灰=閒置</span>
         </div>
         <div id="diagnosticGrid" class="diagnostic-grid">
@@ -353,7 +498,7 @@
         </div>
       </section>
 
-      <!-- 5. 常用原廠快捷指令群 -->
+      <!-- 7. 常用原廠快捷指令群 -->
       <section class="card">
         <div class="card-header">
           <h2>🚀 常用快捷指令群 (Command Palette - 點擊直接發送)</h2>
@@ -373,7 +518,7 @@
         </div>
       </section>
 
-      <!-- 6. 原始底層指令互動控制台 -->
+      <!-- 8. 原始底層指令互動控制台 -->
       <section class="card raw-console-card">
         <div class="card-header">
           <h2>💻 原始底層指令互動控制台 (Raw ASCII Terminal)</h2>
@@ -408,6 +553,42 @@
       <div class="modal-buttons">
         <button id="modalBtnCancel" class="btn btn-secondary">取消</button>
         <button id="modalBtnConfirm" class="btn btn-danger">確認執行</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 19-Bit 診斷排錯 SOP 詳細 Modal 彈窗 -->
+  <div id="diagModal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 580px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+        <h3 id="diagModalTitle" style="display:flex; align-items:center; gap:0.5rem;">
+          <span id="diagModalDot" class="diag-dot" style="display:inline-block;"></span>
+          <span id="diagModalBitLabel">Bit 0</span>: <span id="diagModalName">逆變輸出運作</span>
+        </h3>
+        <span id="diagModalStatusBadge" class="status-pill pill-green">動作中</span>
+      </div>
+
+      <p id="diagModalDesc" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem; text-align:left;">功能定義描述</p>
+
+      <div class="modal-sop-box">
+        <div class="modal-sop-title">🔍 異常成因分析 (Root Cause):</div>
+        <div id="diagModalCause" class="modal-sop-text modal-sop-cause">成因說明...</div>
+        <div class="modal-sop-title">🛠️ 現場標準排錯處置 SOP:</div>
+        <div id="diagModalSop" class="modal-sop-text">處置步驟...</div>
+      </div>
+
+      <div style="text-align:left; margin-top:0.75rem;">
+        <span style="font-size:0.75rem; color:var(--text-dim);">手冊相關指令快速調度:</span>
+        <div style="display:flex; gap:0.5rem; margin-top:0.35rem; flex-wrap:wrap;">
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="Q\r">讀取狀態 [Q]</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="pU\r">參數解鎖 [pU]</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="C 1\r">啟動輸出 [C 1]</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="C 0\r">關閉輸出 [C 0]</button>
+        </div>
+      </div>
+
+      <div class="modal-buttons" style="margin-top:1.25rem;">
+        <button id="diagModalBtnClose" class="btn btn-primary" style="width:100%;">關閉視窗 (Close)</button>
       </div>
     </div>
   </div>

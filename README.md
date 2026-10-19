@@ -4,13 +4,23 @@
 [![Android](https://img.shields.io/badge/Mode%202-Android%20Phone%20HMI-green.svg)](android-phone-hmi/)
 [![PC-Laptop](https://img.shields.io/badge/Mode%203-PC%20%2F%20Laptop%20WPF%20EXE-blue.svg)](pc-laptop-hmi/)
 [![RK3568](https://img.shields.io/badge/Mode%204-RK3568%20Edge%20IPC-purple.svg)](https://www.t-firefly.com/)
-[![Web-Serial](https://img.shields.io/badge/Mode%205-GitHub%20Pages%20Web%20HMI-red.svg)](web-serial-hmi/)
+[![Web-Serial](https://img.shields.io/badge/Mode%205-GitHub%20Pages%20Web%20HMI-red.svg)](https://sungsii32g.github.io/NTU-1200-112US/)
 [![Target](https://img.shields.io/badge/Hardware-MEAN%20WELL%20NTU--1200--112US-blue.svg)](https://www.meanwell.com/)
 [![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
 
 專為 **明緯 (MEAN WELL) NTU-1200-112US 正弦波逆變器 / UPS 電源供應系統**（12Vdc 輸入, 110Vac 60Hz 輸出, 連續 1200W / 峰值 2000W）打造的工業級多架構監控與控制解決方案。
 
-本專案支援 **5 種實作模式**，使用者可依據安裝場景、手邊現有硬體或預算彈性選擇，全面發揮現有設備戰力：
+> [!IMPORTANT]
+> ### 🌐 免安裝雲端 Web Serial 控制中心 (GitHub Pages 線上即開即控)
+> - **線上直接運行網址**：👉 **[https://sungsii32g.github.io/NTU-1200-112US/](https://sungsii32g.github.io/NTU-1200-112US/)**
+> - **零驅動安裝**：支援 Google Chrome / Microsoft Edge 瀏覽器，透過 W3C Web Serial API 原生直通 USB 轉 RS-232 串口（支援 MOXA、FTDI、UNITEK、CH340、CP210x）。
+> - **若 GitHub 倉儲尚未開啟 Pages 服務，請依以下 3 步驟啟用（已做雙重相容）**：
+>   1. 進入本 GitHub 倉儲首頁，點選右上角 **`Settings` (設定)**。
+>   2. 左側選單點選 **`Pages`**。
+>   3. 在 **`Build and deployment`** 區塊：
+>      - **推薦方式 A (最簡單)**：`Source` 選擇 **`Deploy from a branch`** ➔ Branch 選擇 **`main`** ➔ 資料夾選擇 **`/ (root)`** 或 **`/docs`** 均可（本專案已同步部署於根目錄與 docs，且均已配置 `.nojekyll` 防止靜態過濾）➔ 點擊 **`Save`**！
+>      - **推薦方式 B (自動 CI/CD)**：`Source` 選擇 **`GitHub Actions`**（專案內建 `.github/workflows/deploy-pages.yml`，自動推送建置）。
+>   4. 點擊儲存後稍候 1~2 分鐘，點擊上方專屬網址即可秒開 HMI 控制面板！無實體設備時亦提供離線 Mock 模擬展示模式。
 
 ---
 
@@ -18,13 +28,13 @@
 
 | 比較項目 | 【模式一】ESP32-S3 專用面板 | 【模式二】Android 手機/平板面板 | 【模式三】筆電 / 工控 PC 桌面中心 | 【模式四】RK3568 工控主機 | 【模式五】GitHub Pages 雲端免安裝 Web HMI |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **子專案目錄** | [`esp32-s3-hmi/`](esp32-s3-hmi/) | [`android-phone-hmi/`](android-phone-hmi/) | [`pc-laptop-hmi/`](pc-laptop-hmi/) | 跑 [`android-phone-hmi/`](android-phone-hmi/) 或 [`pc-laptop-hmi/`](pc-laptop-hmi/) | [`web-serial-hmi/`](web-serial-hmi/) & [`docs/`](docs/) |
+| **子專案目錄** | [`esp32-s3-hmi/`](esp32-s3-hmi/) | [`android-phone-hmi/`](android-phone-hmi/) | [`pc-laptop-hmi/`](pc-laptop-hmi/) | 跑 [`android-phone-hmi/`](android-phone-hmi/) 或 [`pc-laptop-hmi/`](pc-laptop-hmi/) | [線上即開網址](https://sungsii32g.github.io/NTU-1200-112US/) / [`docs/`](docs/) |
 | **適用設備** | ESP32-S3 開發板 (8MB PSRAM) | 小米 2S (假電池直供) / 紅米 Note 11 Pro | 筆電 (Win10/11) / 工控 PC (IPC) | AIO-3568J 高性能四核 A55 | 任何能開瀏覽器的電腦或 Android 手機 |
 | **顯示介面** | 3.5 吋 IPS 電容觸控 (480×320) | 4.3 吋 ~ 6.67 吋手機螢幕 | 筆電原生 WPF 視窗 (高對比暗黑風格) | HDMI / LVDS 工業大螢幕 (10~21吋) | 瀏覽器網頁 (Chrome / Edge / Opera) |
 | **USB/串口相容** | UART2 (3.3V) 轉隔離 RS-232 | OTG 轉 FTDI/CH340/MOXA/CP2104 | **智慧自動探測鎖定** (MOXA/UNITEK/FTDI) | 板載 RS-232 埠或 USB Host 埠 | **W3C Web Serial API** 原生直連 |
 | **安裝門檻** | 需燒錄韌體 | 需安裝 APK | **免安裝，雙擊單一 EXE 即開** | 刷機部署系統 | **零安裝！打開 GitHub 網址即連** |
 | **軟體技術棧** | C++ / FreeRTOS / LVGL 8.3 | Kotlin / Android USB Host / Compose | **C# .NET WPF (VS Insiders / VS Code)** | Android 11/12 或 Linux / Docker | **HTML5 + CSS3 + Vanilla JS (Web Serial)** |
-| **進階特色** | 超低待機功耗、開孔嵌入機櫃 | TTS 語音告警、Telegram 推播 | **高對比通訊埠選單、60s 趨勢圖、CSV 匯出** | 邊緣物聯網閘道器、多通訊口整合 | **無硬體時支援純網頁離線展示模式** |
+| **進階特色** | 超低待機功耗、開孔嵌入機櫃 | TTS 語音告警、Telegram 推播 | **一鍵工程情境、自訂警戒門檻、CSV 匯出** | 邊緣物聯網閘道器、多通訊口整合 | **19-Bit 點擊排錯 SOP、音效警報、CSV 匯出** |
 | **最佳應用場景** | 配電盤嵌入式、戶外電源箱 | 24小時無人值守常駐監控 | **工作台/實驗室調試、筆電高效監控** | 工業自動化產線、儲能櫃綜合控制中心 | **跨裝置應急即時檢修、手機/平板隨開隨測** |
 
 ---

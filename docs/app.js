@@ -14,6 +14,42 @@ let mockStep = 0;
 let lastPacketTime = 0;
 let historyPoints = []; // 60s 趨勢圖 (vbat, watts)
 let pendingConfirmAction = null;
+let currentBitString = '0000000000000000000';
+
+// 可介面化自訂之安全門檻與通訊節奏
+let lowBatWarnThreshold = 11.0;
+let lowBatCutoffThreshold = 10.0;
+let highBatWarnThreshold = 15.5;
+let overloadWarnThreshold = 1200.0;
+let tempWarnThreshold = 55.0;
+let selectedPollRateMs = 500;
+let isAudioAlertEnabled = true;
+
+// Web Audio API 警報蜂鳴器合成器
+let audioCtx = null;
+let lastBeepTime = 0;
+function playAlertBeep(freq = 880, duration = 0.25) {
+  if (!isAudioAlertEnabled) return;
+  const now = Date.now();
+  if (now - lastBeepTime < 1000) return; // 避免聲音洗頻
+  lastBeepTime = now;
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!audioCtx && AudioContextClass) audioCtx = new AudioContextClass();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch(e) {}
+}
 
 // DOM 元素引用
 const btnWebSerial = document.getElementById('btnWebSerial');
@@ -97,34 +133,178 @@ const modalBody = document.getElementById('modalBody');
 const modalBtnCancel = document.getElementById('modalBtnCancel');
 const modalBtnConfirm = document.getElementById('modalBtnConfirm');
 
-// 19 位元狀態與保護定義
+// 診斷 SOP Modal 元素
+const diagModal = document.getElementById('diagModal');
+const diagModalBitLabel = document.getElementById('diagModalBitLabel');
+const diagModalName = document.getElementById('diagModalName');
+const diagModalDot = document.getElementById('diagModalDot');
+const diagModalStatusBadge = document.getElementById('diagModalStatusBadge');
+const diagModalDesc = document.getElementById('diagModalDesc');
+const diagModalCause = document.getElementById('diagModalCause');
+const diagModalSop = document.getElementById('diagModalSop');
+const diagModalBtnClose = document.getElementById('diagModalBtnClose');
+
+// 19 位元狀態與保護定義 (含成因與工業級現場排錯處置 SOP)
 const bitDefinitions = [
-  { idx: 0, name: "逆變輸出運作", desc: "逆變電路工作中 (Inverting Active)", isAlarm: false },
-  { idx: 1, name: "UPS 市電旁路", desc: "負載由市電 Bypass 供應中", isAlarm: false },
-  { idx: 2, name: "市電交流正常", desc: "市電交流輸入電壓正常在線", isAlarm: false },
-  { idx: 3, name: "市電充電致能", desc: "市網對電池充電迴路工作中", isAlarm: false },
-  { idx: 4, name: "太陽能充電", desc: "太陽能充電輸入運作中", isAlarm: false },
-  { idx: 5, name: "綠能節能模式", desc: "低負載自動休眠省電功能工作中", isAlarm: false },
-  { idx: 6, name: "散熱風扇運轉", desc: "內部強制風冷散熱風扇啟動", isAlarm: false },
-  { idx: 7, name: "電池高壓警報", desc: "電池輸入電壓高於預警門檻 (15.5V)", isAlarm: true },
-  { idx: 8, name: "電池低壓警報", desc: "電池輸入電壓低於預警門檻 (11.0V)", isAlarm: true },
-  { idx: 9, name: "輕度過載警報", desc: "輸出負載超過 100% 額定容量 (1200W)", isAlarm: true },
-  { idx: 10, name: "重度湧浪過載", desc: "輸出負載達到 115% 限制時間運轉", isAlarm: true },
-  { idx: 11, name: "交流輸入異常", desc: "市電輸入超出容許頻率或電壓波形", isAlarm: true },
-  { idx: 12, name: "高壓母線異常", desc: "機內直流升壓高壓母線電壓偏離", isAlarm: true },
-  { idx: 13, name: "內部過溫警報", desc: "功率元件散熱片溫度接近上限", isAlarm: true },
-  { idx: 14, name: "序列通訊握手", desc: "RS-232 遠端通訊串列資料流同步中", isAlarm: false },
-  { idx: 15, name: "節能待機睡眠", desc: "逆變器進入低功耗省電睡眠狀態", isAlarm: false },
-  { idx: 16, name: "逆變故障警告", desc: "硬體嚴重故障告警 (Fault Alarm)", isAlarm: true },
-  { idx: 17, name: "EEPROM 錯誤", desc: "內部儲存參數晶片讀寫錯誤", isAlarm: true },
-  { idx: 18, name: "系統綜合警告", desc: "警告旗標觸發，請檢查現場設備", isAlarm: true }
+  {
+    idx: 0,
+    name: "逆變輸出運作",
+    desc: "逆變電路工作中 (Inverting Active)",
+    cause: "逆變電路已成功啟動並輸出交流電",
+    sop: "正常運行狀態。若需重設參數，請先確認後端負載安全。",
+    isAlarm: false
+  },
+  {
+    idx: 1,
+    name: "UPS 市電旁路",
+    desc: "負載由市電 Bypass 供應中",
+    cause: "市電正常且機內旁路繼電器吸合",
+    sop: "正常旁路供電，電池處於浮充或待機備援狀態。",
+    isAlarm: false
+  },
+  {
+    idx: 2,
+    name: "市電交流正常",
+    desc: "市電交流輸入電壓正常在線",
+    cause: "偵測到 AC 110V 60Hz 市網輸入",
+    sop: "正常市網輸入狀態，具備斷電切換 UPS 能力。",
+    isAlarm: false
+  },
+  {
+    idx: 3,
+    name: "市電充電致能",
+    desc: "市網對電池充電迴路工作中",
+    cause: "交流輸入正在向 12V 直流電池補充電力",
+    sop: "充電進行中，請保持市電輸入穩定，避免中途強行斷電。",
+    isAlarm: false
+  },
+  {
+    idx: 4,
+    name: "太陽能充電",
+    desc: "太陽能充電輸入運作中",
+    cause: "外接太陽能 MPPT 充電控制器正在為電池供電",
+    sop: "太陽能綠能充電中，可搭配綠能模式發揮最佳發電效益。",
+    isAlarm: false
+  },
+  {
+    idx: 5,
+    name: "綠能節能模式",
+    desc: "低負載自動休眠省電功能工作中",
+    cause: "已發送 W 1 且負載低於 10W 門檻",
+    sop: "休眠待機中，當後端負載大於 10W 時會自動在 1 秒內喚醒輸出。",
+    isAlarm: false
+  },
+  {
+    idx: 6,
+    name: "散熱風扇運轉",
+    desc: "內部強制風冷散熱風扇啟動",
+    cause: "內部散熱片溫度大於 45°C 或負載大於 30%",
+    sop: "風扇散熱運轉中，請確認進出風口通暢無異物阻塞。",
+    isAlarm: false
+  },
+  {
+    idx: 7,
+    name: "電池高壓警報",
+    desc: "電池輸入電壓高於預警門檻 (15.5V)",
+    cause: "發電機或充電器充電電壓過高，超出 15.5V 限制",
+    sop: "請立即調低充電器電壓或檢查充電控制器，避免損壞逆變器輸入濾波電容。",
+    isAlarm: true
+  },
+  {
+    idx: 8,
+    name: "電池低壓警報",
+    desc: "電池輸入電壓低於預警門檻 (11.0V)",
+    cause: "電池儲能不足或大電流放電造成內阻壓降",
+    sop: "請盡快接上市電充電，或切換至綠能節能模式並關閉非關鍵負載。",
+    isAlarm: true
+  },
+  {
+    idx: 9,
+    name: "輕度過載警報",
+    desc: "輸出負載超過 100% 額定容量 (1200W)",
+    cause: "後端電器消耗功率超過連續 1200W",
+    sop: "系統僅容許在 115% 運轉 3 分鐘，請關閉非必要電器降低負載。",
+    isAlarm: true
+  },
+  {
+    idx: 10,
+    name: "重度湧浪過載",
+    desc: "輸出負載達到 115% 限制時間運轉",
+    cause: "感性負載（如馬達、壓縮機）啟動湧浪電流過大",
+    sop: "請檢修負載設備，系統將於 10 秒後自動進入保護關斷。",
+    isAlarm: true
+  },
+  {
+    idx: 11,
+    name: "交流輸入異常",
+    desc: "市電輸入超出容許頻率或電壓波形",
+    cause: "台電市網停電、欠壓 (<85V) 或頻率漂移",
+    sop: "系統已自動切換至電池逆變供電，請檢查市電插頭或配電箱。",
+    isAlarm: true
+  },
+  {
+    idx: 12,
+    name: "高壓母線異常",
+    desc: "機內直流升壓高壓母線電壓偏離",
+    cause: "內部 DC-DC 升壓電路電壓不穩或母線電容異常",
+    sop: "請重啟逆變器，若持續異常請聯絡原廠授權工程人員檢修。",
+    isAlarm: true
+  },
+  {
+    idx: 13,
+    name: "內部過溫警報",
+    desc: "功率元件散熱片溫度接近上限 (>60°C)",
+    cause: "環境溫度過高或機殼風扇積灰導致轉速下降",
+    sop: "請改善環境通風條件，清除風道灰塵，待溫度下降後警報將自動解除。",
+    isAlarm: true
+  },
+  {
+    idx: 14,
+    name: "序列通訊握手",
+    desc: "RS-232 遠端通訊串列資料流同步中",
+    cause: "遠端遙測訊號與上位機正常同步交換封包中",
+    sop: "通訊鏈路正常良好，無須額外處置。",
+    isAlarm: false
+  },
+  {
+    idx: 15,
+    name: "節能待機睡眠",
+    desc: "逆變器進入低功耗省電睡眠狀態",
+    cause: "綠能省電模式待機中 (消耗僅 1.5W)",
+    sop: "偵測到負載增加時將自動喚醒輸出，無須手動干預。",
+    isAlarm: false
+  },
+  {
+    idx: 16,
+    name: "逆變故障警告",
+    desc: "硬體嚴重故障告警 (Fault Alarm)",
+    cause: "逆變輸出短路、功率開關元件 (MOSFET) 損壞或持續嚴重過載",
+    sop: "【緊急 SOP】請立即發送 C 0 切斷輸出，拔除負載確認線路無短路後冷重啟。",
+    isAlarm: true
+  },
+  {
+    idx: 17,
+    name: "EEPROM 錯誤",
+    desc: "內部儲存參數晶片讀寫錯誤",
+    cause: "內部校正參數記憶體資料校驗碼 (CRC) 失敗",
+    sop: "請發送 pU 參數解鎖，重新進行 V 110 060 參數寫入重設。",
+    isAlarm: true
+  },
+  {
+    idx: 18,
+    name: "系統綜合警告",
+    desc: "警告旗標觸發，請檢查現場設備",
+    cause: "系統綜合安全聯鎖被觸發 (保護機制連鎖反饋)",
+    sop: "請於工程模式檢視各狀態燈號，逐項排除異常原因。",
+    isAlarm: true
+  }
 ];
 
 function initDiagnosticGrid() {
   const grid = document.getElementById('diagnosticGrid');
   if (!grid) return;
   grid.innerHTML = bitDefinitions.map(b => `
-    <div class="diag-item" id="diagBit_${b.idx}">
+    <div class="diag-item" id="diagBit_${b.idx}" onclick="openDiagModal(${b.idx})">
       <span class="diag-dot" id="dotBit_${b.idx}"></span>
       <div class="diag-content">
         <div class="diag-title-row">
@@ -132,11 +312,52 @@ function initDiagnosticGrid() {
           <span class="diag-name">${b.name}</span>
         </div>
         <span class="diag-desc">${b.desc}</span>
+        <span class="diag-action-hint">點擊查看排錯 SOP ➔</span>
       </div>
     </div>
   `).join('');
 }
 initDiagnosticGrid();
+
+// 診斷 SOP Modal 彈窗控制
+function openDiagModal(idx) {
+  const def = bitDefinitions[idx];
+  if (!def || !diagModal) return;
+
+  const isActive = currentBitString.length > idx && currentBitString[idx] === '1';
+
+  diagModalBitLabel.textContent = `Bit ${def.idx}`;
+  diagModalName.textContent = def.name;
+  diagModalDesc.textContent = def.desc;
+  diagModalCause.textContent = def.cause;
+  diagModalSop.textContent = def.sop;
+
+  diagModalDot.className = 'diag-dot';
+  if (isActive) {
+    diagModalDot.classList.add(def.isAlarm ? 'active-alarm' : 'active-normal');
+    diagModalStatusBadge.className = def.isAlarm ? 'status-pill pill-red' : 'status-pill pill-green';
+    diagModalStatusBadge.textContent = def.isAlarm ? '⚠️ 異常觸發' : '⚡ 動作中';
+  } else {
+    diagModalStatusBadge.className = 'status-pill pill-cyan';
+    diagModalStatusBadge.textContent = '● 正常閒置';
+  }
+
+  diagModal.classList.remove('hidden');
+}
+
+if (diagModalBtnClose) {
+  diagModalBtnClose.addEventListener('click', () => diagModal.classList.add('hidden'));
+}
+if (diagModal) {
+  diagModal.addEventListener('click', (e) => {
+    if (e.target === diagModal) diagModal.classList.add('hidden');
+  });
+}
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && diagModal && !diagModal.classList.contains('hidden')) {
+    diagModal.classList.add('hidden');
+  }
+});
 
 // 檢查 Web Serial API 支援度與環境協定
 const isLocalFile = window.location.protocol === 'file:';
@@ -227,6 +448,37 @@ async function disconnectSerial() {
   setConnectionStatus('未連接', false, false);
 }
 
+// 動態輪詢計時器重設
+function resetPollingTimer() {
+  if (pollingTimer) clearInterval(pollingTimer);
+  if (isPolling && writer) {
+    pollingTimer = setInterval(async () => {
+      if (!isPolling || !writer) return;
+      try {
+        const tStart = performance.now();
+        await writer.write('Q\r');
+        rawTxLine.textContent = 'Q\\r';
+        lastPacketTime = tStart;
+      } catch(e) {
+        setConnectionStatus('通訊發送異常', false, false);
+      }
+    }, selectedPollRateMs);
+  } else if (isDemoMode) {
+    pollingTimer = setInterval(() => {
+      mockStep++;
+      const simLoad = 30 + (mockStep % 20);
+      const simVbat = (12.6 - ((mockStep % 15) * 0.1)).toFixed(1);
+      const simTemp = (36.5 + ((mockStep % 8) * 0.5)).toFixed(1);
+      const mockPacket = `(110.0 ${String(simLoad).padStart(3, '0')} ${simLoad}.0 ${simVbat} ${simTemp} 110.0 060.0 162.0 000 1011000000000000000)`;
+      
+      latencyVal.textContent = '12 ms';
+      rawTxLine.textContent = 'Q\\r';
+      rawRxLine.textContent = mockPacket;
+      parseAndRender(mockPacket);
+    }, selectedPollRateMs);
+  }
+}
+
 // 實體串口輪詢循環
 async function startSerialPolling() {
   isPolling = true;
@@ -241,18 +493,8 @@ async function startSerialPolling() {
   // 接收封包背景循環
   readSerialLoop();
 
-  // 定時 500ms 發送 Q\r 輪詢
-  pollingTimer = setInterval(async () => {
-    if (!isPolling || !writer) return;
-    try {
-      const tStart = performance.now();
-      await writer.write('Q\r');
-      rawTxLine.textContent = 'Q\\r';
-      lastPacketTime = tStart;
-    } catch(e) {
-      setConnectionStatus('通訊發送異常', false, false);
-    }
-  }, 500);
+  // 啟動定時輪詢
+  resetPollingTimer();
 }
 
 async function readSerialLoop() {
@@ -300,19 +542,7 @@ function startDemoMode() {
   rawDeviceInfo.textContent = '離線模擬展示器 (Mock Inverter)';
   setConnectionStatus('模擬展示中', true, false);
 
-  if (pollingTimer) clearInterval(pollingTimer);
-  pollingTimer = setInterval(() => {
-    mockStep++;
-    const simLoad = 30 + (mockStep % 20);
-    const simVbat = (12.6 - ((mockStep % 15) * 0.1)).toFixed(1);
-    const simTemp = (36.5 + ((mockStep % 8) * 0.5)).toFixed(1);
-    const mockPacket = `(110.0 ${String(simLoad).padStart(3, '0')} ${simLoad}.0 ${simVbat} ${simTemp} 110.0 060.0 162.0 000 1011000000000000000)`;
-    
-    latencyVal.textContent = '12 ms';
-    rawTxLine.textContent = 'Q\\r';
-    rawRxLine.textContent = mockPacket;
-    parseAndRender(mockPacket);
-  }, 500);
+  resetPollingTimer();
 }
 
 function stopDemoMode() {
@@ -365,6 +595,8 @@ function parseAndRender(rawStr) {
   const dcBus = parseFloat(tokens[7]) || 0;
 
   const bitStr = tokens[9] || '';
+  currentBitString = bitStr; // 儲存供 19-Bit 排錯 SOP Modal 隨時即時比對
+
   const invActive = bitStr[0] === '1';
   const utBypass = bitStr[1] === '1';
   const gridNorm = bitStr[2] === '1';
@@ -391,27 +623,69 @@ function parseAndRender(rawStr) {
   const tempPct = Math.min(100, Math.max(0, ((temp - 20) / 60) * 100));
   tempBarFill.style.width = `${tempPct}%`;
 
-  // 電池狀態與告警
-  if (battVolt < 10.0) {
+  // 動態門檻評估與告警連鎖
+  let hasAlarm = false;
+  let alarmMsg = '';
+
+  // 1. 電池狀態判定 (對比使用者自訂門檻)
+  if (battVolt <= lowBatCutoffThreshold) {
     batStatusTag.className = 'status-pill pill-red';
-    batStatusTag.textContent = '低壓關斷 (<10.0V)';
-    flowBatStatus.textContent = '緊急關斷';
-    showAlert(`🚨 電池電壓 (${battVolt}V) 已低於 10.0V 關斷門檻！`);
-  } else if (battVolt < 11.0) {
+    batStatusTag.textContent = `低壓關斷 (≤${lowBatCutoffThreshold.toFixed(1)}V)`;
+    flowBatStatus.textContent = '低壓關斷';
+    hasAlarm = true;
+    alarmMsg = `🚨 電池電壓 (${battVolt}V) 已低於自訂關斷門檻 (${lowBatCutoffThreshold.toFixed(1)}V)！`;
+  } else if (battVolt <= lowBatWarnThreshold) {
     batStatusTag.className = 'status-pill pill-amber';
-    batStatusTag.textContent = '低壓預警 (<11.0V)';
+    batStatusTag.textContent = `低壓預警 (≤${lowBatWarnThreshold.toFixed(1)}V)`;
     flowBatStatus.textContent = '低壓預警';
-    showAlert(`⚠️ 電池電壓偏低 (${battVolt}V)，請補充電力。`);
+    hasAlarm = true;
+    alarmMsg = `⚠️ 電池電壓偏低 (${battVolt}V ≤ ${lowBatWarnThreshold.toFixed(1)}V)，請盡快充電。`;
+  } else if (battVolt >= highBatWarnThreshold) {
+    batStatusTag.className = 'status-pill pill-red';
+    batStatusTag.textContent = `高壓過壓 (≥${highBatWarnThreshold.toFixed(1)}V)`;
+    flowBatStatus.textContent = '高壓警告';
+    hasAlarm = true;
+    alarmMsg = `🚨 電池輸入電壓過高 (${battVolt}V ≥ ${highBatWarnThreshold.toFixed(1)}V)，請檢查充電迴路！`;
   } else {
     batStatusTag.className = 'status-pill pill-green';
     batStatusTag.textContent = '正常良好';
     flowBatStatus.textContent = '正常良好';
-    if (!fault) hideAlert();
   }
 
-  // 故障判定
+  // 2. 負載過載判定 (對比自訂門檻)
+  if (loadWatts >= overloadWarnThreshold) {
+    loadStatusTag.className = 'status-pill pill-red';
+    loadStatusTag.textContent = `過載警戒 (≥${overloadWarnThreshold}W)`;
+    hasAlarm = true;
+    alarmMsg = `🚨 負載功率 (${loadWatts}W) 超出自訂過載警戒門檻 (${overloadWarnThreshold}W)！`;
+  } else {
+    loadStatusTag.className = 'status-pill pill-cyan';
+    loadStatusTag.textContent = '正常負載';
+  }
+
+  // 3. 散熱器溫度判定 (對比自訂門檻)
+  if (temp >= tempWarnThreshold) {
+    tempStatusTag.className = 'status-pill pill-red';
+    tempStatusTag.textContent = `過溫警戒 (≥${tempWarnThreshold}°C)`;
+    hasAlarm = true;
+    alarmMsg = `🚨 散熱器溫度 (${temp}°C) 超出自訂過溫警戒 (${tempWarnThreshold}°C)！`;
+  } else {
+    tempStatusTag.className = 'status-pill pill-green';
+    tempStatusTag.textContent = '散熱正常';
+  }
+
+  // 4. 硬體故障判定
   if (fault) {
-    showAlert('🚨 逆變器回報硬體異常故障 (Inverter Fault)！');
+    hasAlarm = true;
+    alarmMsg = '🚨 逆變器回報硬體異常故障 (Inverter Fault)！請切換至工程模式檢視 Bit 16 排錯 SOP。';
+  }
+
+  // 告警顯示與蜂鳴器連動
+  if (hasAlarm) {
+    showAlert(alarmMsg);
+    playAlertBeep(750, 0.28);
+  } else {
+    hideAlert();
   }
 
   // 電力潮流狀態
@@ -458,9 +732,9 @@ function parseAndRender(rawStr) {
     }
   });
 
-  // 繪製儀表量表
-  drawGauge(ctxBat, battVolt, 9.5, 16.5, 11.0, 10.0, true);
-  drawGauge(ctxLoad, loadWatts, 0, 1400, 1200, 1380, false);
+  // 繪製儀表量表 (動態套用自訂門檻)
+  drawGauge(ctxBat, battVolt, 9.5, 16.5, lowBatWarnThreshold, lowBatCutoffThreshold, true);
+  drawGauge(ctxLoad, loadWatts, 0, 1400, overloadWarnThreshold, 1380, false);
 
   // 加入歷史折線點
   historyPoints.push({ vbat: battVolt, watts: loadWatts });
@@ -678,6 +952,141 @@ txtRawCmd.addEventListener('keydown', (e) => {
     if (cmd) sendCommand(cmd);
   }
 });
+
+// 一鍵工程情境切換事件監聽
+document.getElementById('cardScenarioStandard')?.addEventListener('click', async () => {
+  showConfirm(
+    '套用標準商用情境 (110V/60Hz)',
+    '系統將自動執行：解鎖 (pU) ➔ 設置 110V 60Hz ➔ 啟動輸出 (C 1) ➔ 關閉節能待機 (W 0)。確定執行？',
+    async () => {
+      await sendCommand('pU\r');
+      setTimeout(async () => {
+        await sendCommand('V 110 060\r');
+        setTimeout(async () => {
+          await sendCommand('C 1\r');
+          setTimeout(() => sendCommand('W 0\r'), 80);
+        }, 80);
+      }, 80);
+    }
+  );
+});
+
+document.getElementById('cardScenarioGreen')?.addEventListener('click', async () => {
+  showConfirm(
+    '套用綠能省電模式 (UPS)',
+    '系統將自動執行：解鎖 (pU) ➔ 設置 110V 60Hz ➔ 啟動輸出 (C 1) ➔ 啟用節能休眠 (W 1)。確定執行？',
+    async () => {
+      await sendCommand('pU\r');
+      setTimeout(async () => {
+        await sendCommand('V 110 060\r');
+        setTimeout(async () => {
+          await sendCommand('C 1\r');
+          setTimeout(() => sendCommand('W 1\r'), 80);
+        }, 80);
+      }, 80);
+    }
+  );
+});
+
+document.getElementById('cardScenario120V')?.addEventListener('click', async () => {
+  showConfirm(
+    '套用北美大功率情境 (120V/60Hz)',
+    '系統將自動執行：解鎖 (pU) ➔ 設置 120V 60Hz ➔ 啟動輸出 (C 1)。確定執行？',
+    async () => {
+      await sendCommand('pU\r');
+      setTimeout(async () => {
+        await sendCommand('V 120 060\r');
+        setTimeout(() => sendCommand('C 1\r'), 80);
+      }, 80);
+    }
+  );
+});
+
+document.getElementById('cardScenario100V')?.addEventListener('click', async () => {
+  showConfirm(
+    '套用日本東部精密情境 (100V/50Hz)',
+    '系統將自動執行：解鎖 (pU) ➔ 設置 100V 50Hz ➔ 啟動輸出 (C 1)。確定執行？',
+    async () => {
+      await sendCommand('pU\r');
+      setTimeout(async () => {
+        await sendCommand('V 100 050\r');
+        setTimeout(() => sendCommand('C 1\r'), 80);
+      }, 80);
+    }
+  );
+});
+
+document.getElementById('cardScenarioEmergencyStop')?.addEventListener('click', () => {
+  showConfirm(
+    '🛑 緊急安全關斷',
+    '【最高優先權操作】即將發送 C 0 切斷 110V 逆變輸出！後端負載將會立即斷電，確定切斷？',
+    () => sendCommand('C 0\r')
+  );
+});
+
+// 自訂安全門檻儲存與輪詢設定
+const btnSaveSetpoints = document.getElementById('btnSaveSetpoints');
+const setpointLowWarn = document.getElementById('setpointLowWarn');
+const setpointLowCutoff = document.getElementById('setpointLowCutoff');
+const setpointHighWarn = document.getElementById('setpointHighWarn');
+const setpointOverload = document.getElementById('setpointOverload');
+const setpointTemp = document.getElementById('setpointTemp');
+const selectPollRate = document.getElementById('selectPollRate');
+const chkAudioAlert = document.getElementById('chkAudioAlert');
+
+if (btnSaveSetpoints) {
+  btnSaveSetpoints.addEventListener('click', () => {
+    lowBatWarnThreshold = parseFloat(setpointLowWarn.value) || 11.0;
+    lowBatCutoffThreshold = parseFloat(setpointLowCutoff.value) || 10.0;
+    highBatWarnThreshold = parseFloat(setpointHighWarn.value) || 15.5;
+    overloadWarnThreshold = parseFloat(setpointOverload.value) || 1200.0;
+    tempWarnThreshold = parseFloat(setpointTemp.value) || 55.0;
+    selectedPollRateMs = parseInt(selectPollRate.value) || 500;
+    isAudioAlertEnabled = chkAudioAlert.checked;
+
+    resetPollingTimer();
+    alert(`✅ 自訂安全門檻與通訊節奏已儲存生效！\n` +
+          `• 低壓關斷門檻: ${lowBatCutoffThreshold.toFixed(1)} V\n` +
+          `• 低壓預警門檻: ${lowBatWarnThreshold.toFixed(1)} V\n` +
+          `• 高壓過壓門檻: ${highBatWarnThreshold.toFixed(1)} V\n` +
+          `• 負載過載門檻: ${overloadWarnThreshold} W\n` +
+          `• 散熱過溫門檻: ${tempWarnThreshold.toFixed(1)} °C\n` +
+          `• 輪詢通訊週期: ${selectedPollRateMs} ms\n` +
+          `• 異常蜂鳴警報: ${isAudioAlertEnabled ? '啟用' : '停用'}`);
+  });
+}
+
+if (chkAudioAlert) {
+  chkAudioAlert.addEventListener('change', () => {
+    isAudioAlertEnabled = chkAudioAlert.checked;
+  });
+}
+
+// 歷程 CSV 下載匯出
+const btnExportCsv = document.getElementById('btnExportCsv');
+if (btnExportCsv) {
+  btnExportCsv.addEventListener('click', () => {
+    if (historyPoints.length === 0) {
+      alert('目前尚無即時遙測數據可匯出！請先連線或啟動模擬展示。');
+      return;
+    }
+    let csv = '\uFEFF記錄時間,電池電壓_V,交流輸出瓦數_W,系統狀態\n';
+    const now = new Date();
+    historyPoints.forEach((pt, i) => {
+      const timeStr = new Date(now.getTime() - (historyPoints.length - i) * selectedPollRateMs).toLocaleTimeString();
+      csv += `"${timeStr}",${pt.vbat},${pt.watts},"正常運行"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `NTU1200_WebHMI_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+}
 
 // 初始模擬示範啟動
 if (!hasWebSerial) {

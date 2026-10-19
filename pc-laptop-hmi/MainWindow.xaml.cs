@@ -96,6 +96,41 @@ public partial class MainWindow : Window
         }
     }
 
+    private void BtnScenarioStandard_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ApplyScenarioStandard();
+    }
+
+    private void BtnScenarioGreen_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ApplyScenarioGreen();
+    }
+
+    private void BtnScenario120V_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ApplyScenario120V();
+    }
+
+    private void BtnScenario100V_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ApplyScenario100V();
+    }
+
+    private void BtnScenarioEStop_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ApplyScenarioEmergencyStop();
+    }
+
+    private void BtnSaveThresholds_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SaveThresholds();
+    }
+
+    private void BtnOpenLogFolder_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.OpenLogFolder();
+    }
+
     private void BtnSendCustomCmd_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.SendRawCommand(TxtCustomCmd.Text);

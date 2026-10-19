@@ -500,7 +500,25 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- 2. 輸出電壓與頻率校正矩陣 (全介面化按鈕與下拉自選，徹底擺脫手冊) -->
+                    <!-- 2. 一鍵情境工程模式快速套用 (Scenario Profiles - 免複雜手動切換) -->
+                    <Border Style="{StaticResource IndustrialCard}" Margin="0,0,0,14">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,12">
+                                <TextBlock Text="🎯 一鍵工程情境切換 (Scenario Profiles - 自動依序完成解鎖與配置)" FontWeight="Bold" FontSize="14" Foreground="White" />
+                                <TextBlock DockPanel.Dock="Right" Text="專業工程預設，點擊後自動依序發送必要控制指令" FontSize="11" Foreground="{StaticResource AccentCyan}" />
+                            </DockPanel>
+
+                            <WrapPanel>
+                                <Button Content="🏢 標準長效供電 (110V/60Hz, 逆變開, 關待機)" Click="BtnScenarioStandard_Click" Background="#0284C7" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="🌿 綠能節電待機 (110V/60Hz, 低載1.5W休眠)" Click="BtnScenarioGreen_Click" Background="#059669" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="⚡ 北美高壓模式 (120V/60Hz, 逆變開)" Click="BtnScenario120V_Click" Background="#1E293B" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="🇯🇵 日規東部標準 (100V/50Hz, 逆變開)" Click="BtnScenario100V_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="🚨 緊急完全斷電 (E-Stop 瞬間切斷輸出)" Click="BtnScenarioEStop_Click" Background="#DC2626" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 3. 輸出電壓與頻率校正矩陣 (全介面化按鈕與下拉自選，徹底擺脫手冊) -->
                     <Border Style="{StaticResource IndustrialCard}" Margin="0,0,0,14">
                         <StackPanel>
                             <DockPanel Margin="0,0,0,12">
@@ -551,6 +569,78 @@
                                     </StackPanel>
                                 </Border>
                             </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 4. 系統工程警報門檻自訂設定 (Custom Alarm Setpoints & Polling Engine Controls) -->
+                    <Border Style="{StaticResource IndustrialCard}" Margin="0,0,0,14">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,12">
+                                <TextBlock Text="🔔 系統安全警戒門檻與通訊節奏自訂 (Custom Alarm Setpoints)" FontWeight="Bold" FontSize="14" Foreground="White" />
+                                <TextBlock DockPanel.Dock="Right" Text="可動態設定現場監控門檻，即時觸發音效與視覺告警" FontSize="11" Foreground="{StaticResource AccentAmber}" />
+                            </DockPanel>
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- 設定項 1: 低壓預警 -->
+                                <Border Grid.Column="0" Background="#0F172A" CornerRadius="8" Padding="10" Margin="0,0,6,0" BorderBrush="{StaticResource CardBorder}" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="電池低壓預警 (V)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,0,0,4" />
+                                        <TextBox Text="{Binding LowBatWarnThreshold, StringFormat='{}{0:F1}', UpdateSourceTrigger=PropertyChanged}" Background="#162032" Foreground="{StaticResource AccentAmber}" FontWeight="Bold" FontSize="14" Padding="6,4" BorderBrush="{StaticResource CardBorder}" />
+                                        <TextBlock Text="原廠建議: 11.0 V" FontSize="10" Foreground="{StaticResource TextDim}" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- 設定項 2: 低壓切斷 -->
+                                <Border Grid.Column="1" Background="#0F172A" CornerRadius="8" Padding="10" Margin="3,0,3,0" BorderBrush="{StaticResource CardBorder}" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="電池低壓切斷 (V)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,0,0,4" />
+                                        <TextBox Text="{Binding LowBatCutoffThreshold, StringFormat='{}{0:F1}', UpdateSourceTrigger=PropertyChanged}" Background="#162032" Foreground="{StaticResource AccentRed}" FontWeight="Bold" FontSize="14" Padding="6,4" BorderBrush="{StaticResource CardBorder}" />
+                                        <TextBlock Text="原廠建議: 10.0 V" FontSize="10" Foreground="{StaticResource TextDim}" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- 設定項 3: 過載容量 -->
+                                <Border Grid.Column="2" Background="#0F172A" CornerRadius="8" Padding="10" Margin="3,0,3,0" BorderBrush="{StaticResource CardBorder}" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="負載過載容量 (W)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,0,0,4" />
+                                        <TextBox Text="{Binding OverloadWarnThreshold, StringFormat='{}{0:F0}', UpdateSourceTrigger=PropertyChanged}" Background="#162032" Foreground="{StaticResource AccentAmber}" FontWeight="Bold" FontSize="14" Padding="6,4" BorderBrush="{StaticResource CardBorder}" />
+                                        <TextBlock Text="連續額定: 1200 W" FontSize="10" Foreground="{StaticResource TextDim}" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- 設定項 4: 機溫警戒 -->
+                                <Border Grid.Column="3" Background="#0F172A" CornerRadius="8" Padding="10" Margin="3,0,3,0" BorderBrush="{StaticResource CardBorder}" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="內部過溫警戒 (°C)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,0,0,4" />
+                                        <TextBox Text="{Binding TempWarnThreshold, StringFormat='{}{0:F1}', UpdateSourceTrigger=PropertyChanged}" Background="#162032" Foreground="{StaticResource AccentAmber}" FontWeight="Bold" FontSize="14" Padding="6,4" BorderBrush="{StaticResource CardBorder}" />
+                                        <TextBlock Text="安全上限: 65.0 °C" FontSize="10" Foreground="{StaticResource TextDim}" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- 設定項 5: 輪詢節奏 -->
+                                <Border Grid.Column="4" Background="#0F172A" CornerRadius="8" Padding="10" Margin="6,0,0,0" BorderBrush="{StaticResource CardBorder}" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="輪詢刷新頻率 (ms)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,0,0,4" />
+                                        <ComboBox ItemsSource="{Binding PollRateOptions}" SelectedItem="{Binding SelectedPollRateMs}"
+                                                  Style="{StaticResource DarkComboBoxStyle}" ItemContainerStyle="{StaticResource HighContrastComboItem}" Height="28" />
+                                        <TextBlock Text="預設: 500 ms (原廠規範)" FontSize="10" Foreground="{StaticResource TextDim}" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <CheckBox Content="🔊 啟用系統蜂鳴警報音" IsChecked="{Binding IsAudioAlertEnabled}" Foreground="White" VerticalAlignment="Center" Margin="0,0,16,0" />
+                                <Button Content="💾 儲存並套用警戒門檻" Click="BtnSaveThresholds_Click" Background="{StaticResource AccentCyan}" Style="{StaticResource IndustrialButton}" Margin="0,0,10,0" />
+                                <Button Content="📥 開啟日誌資料夾 / 匯出 CSV" Click="BtnOpenLogFolder_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" />
+                            </StackPanel>
                         </StackPanel>
                     </Border>
 

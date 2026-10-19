@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MEAN WELL NTU-1200-112US 雲端免安裝 Web Serial 控制面板</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 頂部導航列 -->
+    <header class="top-nav">
+      <div class="brand">
+        <div class="brand-logo">MW</div>
+        <div class="brand-text">
+          <h1>NTU-1200-112US Web HMI</h1>
+          <span class="sub-brand">雲端免安裝 Web Serial 逆變器控制中心</span>
+        </div>
+      </div>
+
+      <!-- 連線操作區 -->
+      <div class="port-bar">
+        <button id="btnWebSerial" class="btn btn-primary" title="開啟瀏覽器原生 USB 串口選擇器">
+          🔌 連接 USB 串口 (Web Serial)
+        </button>
+        <button id="btnToggleDemo" class="btn btn-secondary" title="切換離線模擬展示模式">
+          🎮 模擬模式 (Demo)
+        </button>
+        <button id="btnDisconnect" class="btn btn-outline hidden" title="斷開串口連線">
+          斷開
+        </button>
+      </div>
+
+      <!-- 系統狀態徽章 -->
+      <div class="system-status">
+        <div id="statusBadge" class="status-badge badge-offline">
+          <span class="pulse-dot"></span>
+          <span id="statusText">未連接</span>
+        </div>
+        <div class="latency-box">
+          <span class="latency-label">延遲</span>
+          <span id="latencyVal" class="latency-value">-- ms</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 瀏覽器支援度警示橫幅 (若不支援 Web Serial 時提示) -->
+    <div id="browserWarning" class="alert-banner info-banner hidden">
+      <span class="alert-icon">💡</span>
+      <span id="browserWarningText">提示：目前瀏覽器不支援 Web Serial API，推薦使用 Google Chrome 或 Microsoft Edge。已為您啟動【離線模擬展示模式】！</span>
+    </div>
+
+    <!-- 告警橫幅 (低壓/過載/故障) -->
+    <div id="alertBanner" class="alert-banner hidden">
+      <span class="alert-icon">⚠️</span>
+      <span id="alertMessage" class="alert-msg">警報訊息</span>
+    </div>
+
+    <!-- 全系統統一：雙模式分頁切換列 -->
+    <nav class="mode-switcher-bar">
+      <button id="tabMonitor" class="mode-tab active" data-mode="monitor">
+        📊 即時監控模式 (Monitoring Mode)
+      </button>
+      <button id="tabEngineering" class="mode-tab" data-mode="engineering">
+        🛠️ 工程應用模式 (Engineering / Pro Mode)
+      </button>
+    </nav>
+
+    <!-- ========================================== -->
+    <!-- 視圖 A：即時監控模式 (Monitoring Mode)   -->
+    <!-- ========================================== -->
+    <main id="viewMonitor" class="view-panel active">
+      <!-- 1. 電力潮流即時動態拓撲卡片 -->
+      <section class="card power-flow-card">
+        <div class="card-header">
+          <h2>⚡ 電力潮流即時拓撲 (Power Flow Topology)</h2>
+          <span id="powerPathBadge" class="badge-path">待機中</span>
+        </div>
+        <div class="flow-diagram">
+          <!-- 節點 1：市電輸入 -->
+          <div class="flow-node" id="nodeGrid">
+            <div class="node-icon">🏢</div>
+            <div class="node-title">市電輸入 (Grid)</div>
+            <div class="node-value" id="flowGridVal">110.0 V</div>
+            <div class="node-sub" id="flowGridFreq">60.0 Hz</div>
+          </div>
+
+          <div class="flow-path" id="pathGridToBypass">
+            <div class="path-line"></div>
+            <div class="path-label">市電直通</div>
+          </div>
+
+          <!-- 節點 2：中央轉換核心 -->
+          <div class="flow-core" id="coreInverter">
+            <div class="core-logo">NTU-1200</div>
+            <div class="core-status" id="coreStatusText">逆變運作中</div>
+            <div class="core-dcbus">DC Bus: <span id="flowDcBusVal">162.0 V</span></div>
+          </div>
+
+          <div class="flow-path-vertical" id="pathBatToInverter">
+            <div class="path-line-v"></div>
+            <div class="path-label-v">電池升壓</div>
+          </div>
+
+          <div class="flow-path" id="pathCoreToLoad">
+            <div class="path-line"></div>
+            <div class="path-label">AC 110V 輸出</div>
+          </div>
+
+          <!-- 節點 3：交流負載 -->
+          <div class="flow-node" id="nodeLoad">
+            <div class="node-icon">💡</div>
+            <div class="node-title">交流負載 (Load)</div>
+            <div class="node-value" id="flowLoadWatts">0 W</div>
+            <div class="node-sub" id="flowLoadPct">0 % 額定</div>
+          </div>
+
+          <!-- 節點 4：直流電池組 -->
+          <div class="flow-node-bottom" id="nodeBat">
+            <div class="node-icon">🔋</div>
+            <div class="node-title">直流電池 (Battery)</div>
+            <div class="node-value" id="flowBatVolt">12.0 V</div>
+            <div class="node-sub" id="flowBatStatus">正常良好</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. 主數據儀表網格 -->
+      <section class="meters-grid">
+        <!-- 卡片 1：電池電壓 -->
+        <div class="card meter-card">
+          <div class="card-title-row">
+            <h3>直流電池電壓</h3>
+            <span id="batStatusTag" class="status-pill pill-green">正常</span>
+          </div>
+          <div class="gauge-container">
+            <canvas id="gaugeBattery" width="220" height="130"></canvas>
+            <div class="gauge-center-text">
+              <span id="valBatVolt" class="gauge-val">--</span>
+              <span class="gauge-unit">Vdc</span>
+            </div>
+          </div>
+          <div class="meter-footer">
+            <span class="spec-label">關斷: 10.0V</span>
+            <span class="spec-label">預警: 11.0V</span>
+            <span class="spec-label">滿電: 12.8V~14.4V</span>
+          </div>
+        </div>
+
+        <!-- 卡片 2：交流輸出與瓦數 -->
+        <div class="card meter-card">
+          <div class="card-title-row">
+            <h3>交流輸出 & 負載率</h3>
+            <span id="loadStatusTag" class="status-pill pill-cyan">待機</span>
+          </div>
+          <div class="gauge-container">
+            <canvas id="gaugeLoad" width="220" height="130"></canvas>
+            <div class="gauge-center-text">
+              <span id="valLoadWatts" class="gauge-val">--</span>
+              <span class="gauge-unit">W</span>
+            </div>
+          </div>
+          <div class="meter-footer">
+            <span class="spec-label">輸出: <strong id="valAcVolt">-- V</strong></span>
+            <span class="spec-label">負載率: <strong id="valLoadPct">-- %</strong></span>
+            <span class="spec-label">額定: 1200W</span>
+          </div>
+        </div>
+
+        <!-- 卡片 3：散熱器溫度 -->
+        <div class="card meter-card">
+          <div class="card-title-row">
+            <h3>機內散熱器溫度</h3>
+            <span id="tempStatusTag" class="status-pill pill-green">正常</span>
+          </div>
+          <div class="temp-display">
+            <div class="temp-big-val">
+              <span id="valTemp">--</span><span class="temp-unit">°C</span>
+            </div>
+            <div class="temp-bar-wrapper">
+              <div id="tempBarFill" class="temp-bar-fill" style="width: 30%;"></div>
+            </div>
+          </div>
+          <div class="meter-footer">
+            <span class="spec-label">常溫: 25~45°C</span>
+            <span class="spec-label">風扇啟動: ≥ 50°C</span>
+            <span class="spec-label">過溫保護: 75°C</span>
+          </div>
+        </div>
+
+        <!-- 卡片 4：硬體運作旗標 -->
+        <div class="card flags-card">
+          <div class="card-title-row">
+            <h3>硬體運作旗標</h3>
+            <span class="spec-sub">即時位元解析</span>
+          </div>
+          <div class="flags-grid">
+            <div class="flag-item" id="flagInverter"><span class="flag-dot"></span><span class="flag-name">逆變輸出</span></div>
+            <div class="flag-item" id="flagBypass"><span class="flag-dot"></span><span class="flag-name">UPS 旁路</span></div>
+            <div class="flag-item" id="flagGrid"><span class="flag-dot"></span><span class="flag-name">市電正常</span></div>
+            <div class="flag-item" id="flagSaving"><span class="flag-dot"></span><span class="flag-name">綠能節能</span></div>
+            <div class="flag-item" id="flagFault"><span class="flag-dot"></span><span class="flag-name">設備異常</span></div>
+            <div class="flag-item" id="flagEeprom"><span class="flag-dot"></span><span class="flag-name">EEPROM 狀態</span></div>
+          </div>
+          <div class="flags-extra">
+            <div>市電頻率: <strong id="valFreq">60.0 Hz</strong></div>
+            <div>高壓母線: <strong id="valDcBus">162.0 V</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 60 秒即時趨勢折線圖 -->
+      <section class="card chart-card">
+        <div class="card-header">
+          <h2>📈 電池電壓 (V) 與 負載瓦數 (W) 60 秒即時趨勢</h2>
+          <div class="chart-legend">
+            <span class="legend-item"><span class="legend-color color-vbat"></span> 電池電壓 (V)</span>
+            <span class="legend-item"><span class="legend-color color-watts"></span> 負載輸出 (W)</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="trendChart" width="1000" height="240"></canvas>
+        </div>
+      </section>
+    </main>
+
+    <!-- ========================================== -->
+    <!-- 視圖 B：工程應用模式 (Engineering / Pro Mode) -->
+    <!-- ========================================== -->
+    <!-- ========================================== -->
+    <!-- 視圖 B：工程應用模式 (Engineering / Pro Mode) -->
+    <!-- ========================================== -->
+    <main id="viewEngineering" class="view-panel">
+      <!-- 1. 核心控制動作卡片 (安全互鎖) -->
+      <section class="card control-card">
+        <div class="card-header">
+          <h2>⚡ 逆變器核心指令操作 (具備二次確認安全防呆機制)</h2>
+          <span class="lock-tag">🔒 防呆互鎖已生效</span>
+        </div>
+        <div class="control-actions">
+          <!-- 交流輸出開關 -->
+          <div class="action-box">
+            <div class="action-desc">
+              <strong>交流電源輸出 (AC Output Control)</strong>
+              <span>遠端開啟或切斷 110V 逆變輸出 (`C 1` / `C 0`)</span>
+            </div>
+            <div class="action-btns">
+              <button id="btnTurnOnAC" class="btn btn-success">⚡ 啟動 110V 輸出 (C 1)</button>
+              <button id="btnTurnOffAC" class="btn btn-danger">🛑 切斷輸出 (C 0)</button>
+            </div>
+          </div>
+
+          <!-- 綠能節能模式開關 -->
+          <div class="action-box">
+            <div class="action-desc">
+              <strong>綠能節能待機 (Power Saving Mode)</strong>
+              <span>負載小於 10W 時進入 1.5W 超低功耗休眠 (`W 1` / `W 0`)</span>
+            </div>
+            <div class="action-btns">
+              <button id="btnEnableSaving" class="btn btn-outline">🌿 啟用節能 (W 1)</button>
+              <button id="btnDisableSaving" class="btn btn-outline">停用節能 (W 0)</button>
+            </div>
+          </div>
+
+          <!-- 參數解鎖 -->
+          <div class="action-box">
+            <div class="action-desc">
+              <strong>參數解鎖 (Parameter Unlock)</strong>
+              <span>寫入輸出電壓/頻率配置前必須先發送 (`pU`)</span>
+            </div>
+            <div class="action-btns">
+              <button id="btnUnlock" class="btn btn-warning">🔓 發送 pU 解鎖</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. 一鍵工程情境切換 (Scenario Profiles) -->
+      <section class="card">
+        <div class="card-header">
+          <h2>⚡ 一鍵工程情境切換 (Engineering Scenario Profiles)</h2>
+          <span class="terminal-hint">免翻手冊，自動依序執行解鎖、電壓/頻率配置、輸出與節能設定</span>
+        </div>
+        <div class="scenario-grid">
+          <!-- 情境 1 -->
+          <div class="scenario-card" id="cardScenarioStandard">
+            <div>
+              <div class="scenario-header">
+                <span class="scenario-icon">⚡</span>
+                <span class="scenario-badge scenario-badge-cyan">110V 60Hz</span>
+              </div>
+              <div class="scenario-title">標準商用 110V/60Hz</div>
+              <div class="scenario-desc">台美常規用電標準。自動解鎖並寫入 110V/60Hz、啟動交流輸出 (C 1) 並關閉節能待機 (W 0)。</div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:0.75rem; width:100%;">套用標準情境</button>
+          </div>
+
+          <!-- 情境 2 -->
+          <div class="scenario-card" id="cardScenarioGreen">
+            <div>
+              <div class="scenario-header">
+                <span class="scenario-icon">🌿</span>
+                <span class="scenario-badge scenario-badge-green">節能 UPS</span>
+              </div>
+              <div class="scenario-title">綠能省電模式 (UPS)</div>
+              <div class="scenario-desc">市電斷電備援。開啟 110V 輸出並啟用低負載休眠 (W 1)，無負載時僅消耗 1.5W，延長電池壽命。</div>
+            </div>
+            <button class="btn btn-success" style="margin-top:0.75rem; width:100%;">套用綠能情境</button>
+          </div>
+
+          <!-- 情境 3 -->
+          <div class="scenario-card" id="cardScenario120V">
+            <div>
+              <div class="scenario-header">
+                <span class="scenario-icon">🌎</span>
+                <span class="scenario-badge scenario-badge-blue">120V 60Hz</span>
+              </div>
+              <div class="scenario-title">北美大功率 120V/60Hz</div>
+              <div class="scenario-desc">適用美規工具與大功率負載。自動解鎖並配置 120V 輸出，啟動交流逆變，提供穩定高電壓輸出。</div>
+            </div>
+            <button class="btn btn-outline" style="margin-top:0.75rem; width:100%;">套用北美情境</button>
+          </div>
+
+          <!-- 情境 4 -->
+          <div class="scenario-card" id="cardScenario100V">
+            <div>
+              <div class="scenario-header">
+                <span class="scenario-icon">🇯🇵</span>
+                <span class="scenario-badge scenario-badge-amber">100V 50Hz</span>
+              </div>
+              <div class="scenario-title">日本東部 100V/50Hz</div>
+              <div class="scenario-desc">日本東部 (東京) 原裝進口精密儀器或電器專用標準。自動解鎖並配置 100V/50Hz 精準純正弦波。</div>
+            </div>
+            <button class="btn btn-outline" style="margin-top:0.75rem; width:100%;">套用日規情境</button>
+          </div>
+
+          <!-- 情境 5 -->
+          <div class="scenario-card" id="cardScenarioEmergencyStop">
+            <div>
+              <div class="scenario-header">
+                <span class="scenario-icon">🛑</span>
+                <span class="scenario-badge scenario-badge-red">安全切斷</span>
+              </div>
+              <div class="scenario-title">緊急關斷所有輸出</div>
+              <div class="scenario-desc">現場遇到過載或緊急異常時，一鍵立即發送 C 0 切斷 110V 輸出，迅速保護設備與人員安全。</div>
+            </div>
+            <button class="btn btn-danger" style="margin-top:0.75rem; width:100%;">立即緊急切斷</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 輸出電壓與頻率配置矩陣 -->
+      <section class="card">
+        <div class="card-header">
+          <h2>⚙️ 交流輸出電壓與頻率配置 (Voltage & Frequency Setting Matrix)</h2>
+          <span class="terminal-hint">自動依序執行: 解鎖 pU ➔ 發送 V 指令 ➔ Q 回讀驗證</span>
+        </div>
+        <div class="engineering-grid">
+          <div>
+            <p class="section-desc">常用國家標準快速切換 (一鍵自動解鎖與寫入):</p>
+            <div class="preset-btn-group">
+              <button class="btn btn-primary btn-voltage" data-v="110" data-f="060">110V / 60Hz (台美預設標準)</button>
+              <button class="btn btn-outline btn-voltage" data-v="120" data-f="060">120V / 60Hz (北美高壓)</button>
+              <button class="btn btn-outline btn-voltage" data-v="100" data-f="050">100V / 50Hz (日規東部)</button>
+              <button class="btn btn-outline btn-voltage" data-v="100" data-f="060">100V / 60Hz (日規西部)</button>
+              <button class="btn btn-outline btn-voltage" data-v="115" data-f="060">115V / 60Hz (美加微調)</button>
+            </div>
+          </div>
+          <div>
+            <p class="section-desc">自訂電壓與頻率組合:</p>
+            <div class="custom-v-row">
+              <select id="selectVoltage" class="styled-select">
+                <option value="110" selected>110 V</option>
+                <option value="120">120 V</option>
+                <option value="115">115 V</option>
+                <option value="100">100 V</option>
+              </select>
+              <select id="selectFreq" class="styled-select">
+                <option value="060" selected>60 Hz</option>
+                <option value="050">50 Hz</option>
+              </select>
+              <button id="btnApplyCustomV" class="btn btn-secondary">套用配置 (Apply V)</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. 系統安全警戒門檻與通訊節奏自訂 -->
+      <section class="card">
+        <div class="card-header">
+          <h2>🛡️ 系統安全警戒門檻與通訊節奏自訂 (Custom Alarm Setpoints & Polling)</h2>
+          <span class="terminal-hint">可直接微調各項警報觸發數值，支援即時評估與蜂鳴器警報</span>
+        </div>
+        <p class="section-desc">依據現場電池容量或特定設備負載微調告警數值，避免誤報並精準保護電池組：</p>
+        <div class="setpoints-grid">
+          <div class="setpoint-card">
+            <span class="setpoint-label">電池低壓預警門檻</span>
+            <div class="setpoint-input-group">
+              <input type="number" id="setpointLowWarn" class="setpoint-input" value="11.0" step="0.1" min="9.0" max="14.0" />
+              <span class="setpoint-unit">V</span>
+            </div>
+          </div>
+          <div class="setpoint-card">
+            <span class="setpoint-label">電池低壓關斷門檻</span>
+            <div class="setpoint-input-group">
+              <input type="number" id="setpointLowCutoff" class="setpoint-input" value="10.0" step="0.1" min="9.0" max="13.0" />
+              <span class="setpoint-unit">V</span>
+            </div>
+          </div>
+          <div class="setpoint-card">
+            <span class="setpoint-label">電池高壓過壓門檻</span>
+            <div class="setpoint-input-group">
+              <input type="number" id="setpointHighWarn" class="setpoint-input" value="15.5" step="0.1" min="14.0" max="18.0" />
+              <span class="setpoint-unit">V</span>
+            </div>
+          </div>
+          <div class="setpoint-card">
+            <span class="setpoint-label">負載過載警戒門檻</span>
+            <div class="setpoint-input-group">
+              <input type="number" id="setpointOverload" class="setpoint-input" value="1200" step="50" min="500" max="2000" />
+              <span class="setpoint-unit">W</span>
+            </div>
+          </div>
+          <div class="setpoint-card">
+            <span class="setpoint-label">散熱器溫度預警門檻</span>
+            <div class="setpoint-input-group">
+              <input type="number" id="setpointTemp" class="setpoint-input" value="55.0" step="1" min="35" max="80" />
+              <span class="setpoint-unit">°C</span>
+            </div>
+          </div>
+          <div class="setpoint-card">
+            <span class="setpoint-label">RS-232 輪詢頻率</span>
+            <div class="setpoint-input-group">
+              <select id="selectPollRate" class="styled-select" style="width:100%; padding:0.35rem 0.6rem;">
+                <option value="500" selected>500 ms (高速即時)</option>
+                <option value="1000">1000 ms (標準平衡)</option>
+                <option value="2000">2000 ms (低負載節能)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="setpoints-actions-bar">
+          <label class="toggle-switch-label">
+            <input type="checkbox" id="chkAudioAlert" checked />
+            <span>🔊 啟用異常蜂鳴器音效警報 (Web Audio Alert)</span>
+          </label>
+          <div style="display:flex; gap:0.75rem;">
+            <button id="btnExportCsv" class="btn btn-secondary" title="將當前趨勢與遙測記錄匯出為 CSV 試算表">
+              📥 匯出歷程 CSV
+            </button>
+            <button id="btnSaveSetpoints" class="btn btn-primary" title="套用門檻至即時監控系統">
+              💾 儲存自訂門檻
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 原廠硬體規格認證與設備型號查詢 -->
+      <div class="engineering-grid">
+        <!-- 規格表 -->
+        <section class="card">
+          <div class="card-header">
+            <h2>📋 原廠型號與規格認證 (MEAN WELL NTU-1200-112US)</h2>
+          </div>
+          <table class="specs-table">
+            <tr><td class="specs-label">連續額定功率</td><td class="specs-val">1200W (持續滿載)</td></tr>
+            <tr><td class="specs-label">峰值湧浪容量</td><td class="specs-val" style="color:var(--accent-amber)">2000W (10秒支援)</td></tr>
+            <tr><td class="specs-label">直流輸入規格</td><td class="specs-val">12Vdc (正常範圍 10.0V ~ 16.5V)</td></tr>
+            <tr><td class="specs-label">交流輸出電壓</td><td class="specs-val" style="color:var(--accent-cyan)">110Vac 60Hz 純正弦波 (THD &lt; 3%)</td></tr>
+            <tr><td class="specs-label">UPS 切換時間</td><td class="specs-val" style="color:var(--accent-green)">&lt; 10 ms (市電與逆變無縫切換)</td></tr>
+          </table>
+        </section>
+
+        <!-- 設備資訊查詢 -->
+        <section class="card">
+          <div class="card-header">
+            <h2>ℹ️ 設備型號與韌體版本查詢 (`I\r`)</h2>
+            <button id="btnQueryInfo" class="btn btn-secondary">查詢設備 (I)</button>
+          </div>
+          <div class="info-terminal" id="deviceInfoBox">
+            點擊「查詢設備」讀取逆變器型號與韌體版本...
+          </div>
+        </section>
+      </div>
+
+      <!-- 6. 19-Bit 狀態旗標與硬體診斷指示燈矩陣 -->
+      <section class="card">
+        <div class="card-header">
+          <h2>💡 19-Bit 硬體狀態與保護診斷矩陣 (點擊任一項目查看排錯 SOP 與成因分析)</h2>
+          <span class="terminal-hint">綠燈=運作中 / 紅燈=異常警報 / 暗灰=閒置</span>
+        </div>
+        <div id="diagnosticGrid" class="diagnostic-grid">
+          <!-- 由 JS 動態注入 19 位元指示燈 -->
+        </div>
+      </section>
+
+      <!-- 7. 常用原廠快捷指令群 -->
+      <section class="card">
+        <div class="card-header">
+          <h2>🚀 常用快捷指令群 (Command Palette - 點擊直接發送)</h2>
+          <span class="terminal-hint">免翻手冊，自動附加 \r 結束字元</span>
+        </div>
+        <div class="preset-btn-group">
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="Q\r">[Q] 讀取即時遙測</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="I\r">[I] 讀取設備規格</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="pU\r">[pU] 解鎖參數防寫</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="C 1\r">[C 1] 啟動逆變輸出</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="C 0\r">[C 0] 關閉逆變輸出</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="W 1\r">[W 1] 啟用節能待機</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="W 0\r">[W 0] 停用節能待機</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="V 110 060\r">[V 110 060] 設為 110V 60Hz</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="V 120 060\r">[V 120 060] 設為 120V 60Hz</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="V 100 050\r">[V 100 050] 設為 100V 50Hz</button>
+        </div>
+      </section>
+
+      <!-- 8. 原始底層指令互動控制台 -->
+      <section class="card raw-console-card">
+        <div class="card-header">
+          <h2>💻 原始底層指令互動控制台 (Raw ASCII Terminal)</h2>
+        </div>
+        <p class="section-desc">手動發送任何特殊指令，系統將自動附加 <code>\r</code> 結束符並記錄於底部監視器。</p>
+        <div class="console-input-row">
+          <input type="text" id="txtRawCmd" class="styled-input" placeholder="輸入指令 (如 Q, I, C 1, W 0)..." value="Q" />
+          <button id="btnSendRaw" class="btn btn-primary">發送指令 (Send)</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- 底部通訊封包監視器 (可折疊) -->
+    <details class="card terminal-card" open>
+      <summary class="terminal-summary">
+        <span>📟 即時 ASCII 通訊封包監視器 (Live Packet Monitor)</span>
+        <span class="terminal-hint">點擊展開 / 收合</span>
+      </summary>
+      <div class="terminal-content">
+        <div class="terminal-line">最後發送 (TX): <code id="rawTxLine">Q\r</code></div>
+        <div class="terminal-line">最後接收 (RX): <code id="rawRxLine">尚未接收</code></div>
+        <div class="terminal-line">連線模式: <span id="rawDeviceInfo">未連接 (點擊上方按鈕連線或開啟模擬)</span></div>
+      </div>
+    </details>
+  </div>
+
+  <!-- 安全確認 Modal 彈窗 -->
+  <div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 id="modalTitle">⚠️ 操作安全確認</h3>
+      <p id="modalBody">確定要切斷交流電源輸出嗎？後端負載將會瞬間斷電！</p>
+      <div class="modal-buttons">
+        <button id="modalBtnCancel" class="btn btn-secondary">取消</button>
+        <button id="modalBtnConfirm" class="btn btn-danger">確認執行</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 19-Bit 診斷排錯 SOP 詳細 Modal 彈窗 -->
+  <div id="diagModal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width: 580px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+        <h3 id="diagModalTitle" style="display:flex; align-items:center; gap:0.5rem;">
+          <span id="diagModalDot" class="diag-dot" style="display:inline-block;"></span>
+          <span id="diagModalBitLabel">Bit 0</span>: <span id="diagModalName">逆變輸出運作</span>
+        </h3>
+        <span id="diagModalStatusBadge" class="status-pill pill-green">動作中</span>
+      </div>
+
+      <p id="diagModalDesc" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem; text-align:left;">功能定義描述</p>
+
+      <div class="modal-sop-box">
+        <div class="modal-sop-title">🔍 異常成因分析 (Root Cause):</div>
+        <div id="diagModalCause" class="modal-sop-text modal-sop-cause">成因說明...</div>
+        <div class="modal-sop-title">🛠️ 現場標準排錯處置 SOP:</div>
+        <div id="diagModalSop" class="modal-sop-text">處置步驟...</div>
+      </div>
+
+      <div style="text-align:left; margin-top:0.75rem;">
+        <span style="font-size:0.75rem; color:var(--text-dim);">手冊相關指令快速調度:</span>
+        <div style="display:flex; gap:0.5rem; margin-top:0.35rem; flex-wrap:wrap;">
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="Q\r">讀取狀態 [Q]</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="pU\r">參數解鎖 [pU]</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="C 1\r">啟動輸出 [C 1]</button>
+          <button class="btn btn-outline btn-quick-cmd" data-cmd="C 0\r">關閉輸出 [C 0]</button>
+        </div>
+      </div>
+
+      <div class="modal-buttons" style="margin-top:1.25rem;">
+        <button id="diagModalBtnClose" class="btn btn-primary" style="width:100%;">關閉視窗 (Close)</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
