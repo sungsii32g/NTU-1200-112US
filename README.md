@@ -2,29 +2,50 @@
 
 [![PlatformIO](https://img.shields.io/badge/Mode%201-ESP32--S3%20%2B%20LVGL-orange.svg)](esp32-s3-hmi/)
 [![Android](https://img.shields.io/badge/Mode%202-Android%20Phone%20HMI-green.svg)](android-phone-hmi/)
-[![PC-Laptop](https://img.shields.io/badge/Mode%203-PC%20%2F%20Laptop%20Web%20HMI-blue.svg)](pc-laptop-hmi/)
+[![PC-Laptop](https://img.shields.io/badge/Mode%203-PC%20%2F%20Laptop%20WPF%20EXE-blue.svg)](pc-laptop-hmi/)
 [![RK3568](https://img.shields.io/badge/Mode%204-RK3568%20Edge%20IPC-purple.svg)](https://www.t-firefly.com/)
+[![Web-Serial](https://img.shields.io/badge/Mode%205-GitHub%20Pages%20Web%20HMI-red.svg)](web-serial-hmi/)
 [![Target](https://img.shields.io/badge/Hardware-MEAN%20WELL%20NTU--1200--112US-blue.svg)](https://www.meanwell.com/)
 [![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
 
 專為 **明緯 (MEAN WELL) NTU-1200-112US 正弦波逆變器 / UPS 電源供應系統**（12Vdc 輸入, 110Vac 60Hz 輸出, 連續 1200W / 峰值 2000W）打造的工業級多架構監控與控制解決方案。
 
-本專案支援 **4 種實作模式**，使用者可依據安裝場景、手邊現有硬體或預算彈性選擇，全面發揮現有設備戰力：
+本專案支援 **5 種實作模式**，使用者可依據安裝場景、手邊現有硬體或預算彈性選擇，全面發揮現有設備戰力：
 
 ---
 
-## 🧭 四大實作模式與特性選型對比
+## 🧭 五大實作模式與特性選型對比
 
-| 比較項目 | 【模式一】ESP32-S3 專用面板 | 【模式二】Android 手機/平板面板 | 【模式三】筆電 / 工控 PC 桌面與 Web 監控中心 | 【模式四】RK3568 (AIO-3568J) 工控主機 |
-| :--- | :--- | :--- | :--- | :--- |
-| **子專案目錄** | [`esp32-s3-hmi/`](esp32-s3-hmi/) | [`android-phone-hmi/`](android-phone-hmi/) | [`pc-laptop-hmi/`](pc-laptop-hmi/) | 跑 [`android-phone-hmi/`](android-phone-hmi/) 或 [`pc-laptop-hmi/`](pc-laptop-hmi/) |
-| **適用設備** | ESP32-S3 開發板 (8MB PSRAM) | 小米 2S (假電池直供) / 紅米 Note 11 Pro | 筆電 (Win10/11, Ubuntu) / 工控 PC (IPC) | AIO-3568J 高性能四核 A55 (1TOPS NPU) |
-| **顯示介面** | 3.5 吋 IPS 電容觸控 (480×320) | 4.3 吋 ~ 6.67 吋手機 AMOLED/IPS | 筆電螢幕 (原生 WPF 桌面視窗 / Web HMI) | HDMI / MIPI-DSI / LVDS 工業大螢幕 (10~21吋) |
-| **USB/串口相容** | UART2 (3.3V) 轉隔離 RS-232 | OTG 轉 FTDI/CH340/MOXA/CP2104 | **自動探測鎖定現有串口** (MOXA/UNITEK/FTDI) | 板載 RS-232 埠或 USB Host 埠 |
-| **供電方案** | 12V 轉 5V 直流降壓 | 外部 4.1V 假電池 / Type-C 邊充邊用 | 筆電自帶電池 + 變壓器 (不斷電備援) | 外部 DC 12V 工業供電 |
-| **軟體技術棧** | C++ / FreeRTOS / LVGL 8.3 | Kotlin / Android USB Host / Compose | **C# .NET 8/10 WPF (VS Insiders / VS Code) 產出原生 EXE，亦附 Python Web 版** | Android 11/12 或 Ubuntu / Docker |
-| **進階特色** | 超低待機功耗、開孔嵌入機櫃 | TTS 語音告警、Telegram 推播 | **原生 EXE 雙擊即開、即時 60s 趨勢圖、CSV 長期日誌** | 邊緣物聯網閘道器、多通訊口整合 |
-| **最佳應用場景** | 配電盤嵌入式、戶外電源箱 | 24小時無人值守常駐監控 | **工作台/實驗室現場調試、筆電原生高效監控** | 工業自動化產線、儲能櫃綜合控制中心 |
+| 比較項目 | 【模式一】ESP32-S3 專用面板 | 【模式二】Android 手機/平板面板 | 【模式三】筆電 / 工控 PC 桌面中心 | 【模式四】RK3568 工控主機 | 【模式五】GitHub Pages 雲端免安裝 Web HMI |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **子專案目錄** | [`esp32-s3-hmi/`](esp32-s3-hmi/) | [`android-phone-hmi/`](android-phone-hmi/) | [`pc-laptop-hmi/`](pc-laptop-hmi/) | 跑 [`android-phone-hmi/`](android-phone-hmi/) 或 [`pc-laptop-hmi/`](pc-laptop-hmi/) | [`web-serial-hmi/`](web-serial-hmi/) & [`docs/`](docs/) |
+| **適用設備** | ESP32-S3 開發板 (8MB PSRAM) | 小米 2S (假電池直供) / 紅米 Note 11 Pro | 筆電 (Win10/11) / 工控 PC (IPC) | AIO-3568J 高性能四核 A55 | 任何能開瀏覽器的電腦或 Android 手機 |
+| **顯示介面** | 3.5 吋 IPS 電容觸控 (480×320) | 4.3 吋 ~ 6.67 吋手機螢幕 | 筆電原生 WPF 視窗 (高對比暗黑風格) | HDMI / LVDS 工業大螢幕 (10~21吋) | 瀏覽器網頁 (Chrome / Edge / Opera) |
+| **USB/串口相容** | UART2 (3.3V) 轉隔離 RS-232 | OTG 轉 FTDI/CH340/MOXA/CP2104 | **智慧自動探測鎖定** (MOXA/UNITEK/FTDI) | 板載 RS-232 埠或 USB Host 埠 | **W3C Web Serial API** 原生直連 |
+| **安裝門檻** | 需燒錄韌體 | 需安裝 APK | **免安裝，雙擊單一 EXE 即開** | 刷機部署系統 | **零安裝！打開 GitHub 網址即連** |
+| **軟體技術棧** | C++ / FreeRTOS / LVGL 8.3 | Kotlin / Android USB Host / Compose | **C# .NET WPF (VS Insiders / VS Code)** | Android 11/12 或 Linux / Docker | **HTML5 + CSS3 + Vanilla JS (Web Serial)** |
+| **進階特色** | 超低待機功耗、開孔嵌入機櫃 | TTS 語音告警、Telegram 推播 | **高對比通訊埠選單、60s 趨勢圖、CSV 匯出** | 邊緣物聯網閘道器、多通訊口整合 | **無硬體時支援純網頁離線展示模式** |
+| **最佳應用場景** | 配電盤嵌入式、戶外電源箱 | 24小時無人值守常駐監控 | **工作台/實驗室調試、筆電高效監控** | 工業自動化產線、儲能櫃綜合控制中心 | **跨裝置應急即時檢修、手機/平板隨開隨測** |
+
+---
+
+## 🎛️ 全平台統一介面架構：雙模式設計標準
+
+為了讓現場操作人員與研發工程師在各端（PC 桌面版、網頁版、手機版）享有一致的操作體驗，本專案將介面與控制權限嚴格劃分為兩大模式：
+
+### 1. 【📊 即時監控模式 (Monitoring Mode)】—— 現場安全直觀巡檢
+- **動態能量流拓撲圖**：實時呈現 DC 直流側與 AC 交流側能量流向動畫與即時數值。
+- **四大量測核心儀表**：電池輸入電壓 (V)、輸出交流電壓 (V)、負載功率 (W / %)、逆變器內部溫度 (°C)。
+- **60 秒即時動態趨勢圖**：即時繪製電壓波動與負載負載曲線，瞬態脈衝無所遁形。
+- **即時警報與狀態指示條**：正常狀態呈現科技藍綠色，異常時自動跳紅閃爍告警。
+
+### 2. 【🛠️ 工程應用模式 (Engineering / Pro Mode)】—— 完整設備配置與進階控制
+- **輸出電源控制 (`C 1` / `C 0`)**：支援一鍵開啟或關閉 110Vac 輸出，具備防誤觸二次確認對話框。
+- **節能待機開關 (`W 1` / `W 0`)**：配置是否開啟綠能節能模式（無負載時自動睡眠）。
+- **輸出電壓與頻率校正配置 (`V <WWW> <0FF>`)**：具備工程參數解鎖防護（`pU`），提供 100V / 110V / 115V / 120V 與 50Hz / 60Hz 快速切換。
+- **設備硬體資訊讀取 (`I`)**：一鍵獲取逆變器完整製造型號、軟韌體版本與工廠出廠序號。
+- **19-Bit 狀態旗標解析面板**：逐位解析過溫、短路、過載、DC 欠壓/過壓等 19 個硬體狀態位元。
+- **原始 ASCII 指令終端機**：提供手動指令發送框與即時通訊日誌視窗，支援 Hex/ASCII 對比分析。
 
 ---
 
@@ -34,17 +55,17 @@
 > **好消息！運用手邊現有配備，今天即可「零元直接上線」，享受高達 4 kV RMS 的頂規工業隔離保護：**
 
 1. **核心神級配件：MOXA TCC-82（工業級 4-Channel 埠供電 RS-232 光電隔離器，4 kV RMS 隔離耐壓）**：
-   - **全模式通用保險**：TCC-82 採標準 DB9 母進公出，**在全模式（模式一至模式四）中均可自由串接使用**！
-   - **通用串接原則**：除非直接使用一體成型的「微雪 Waveshare 工業級隔離 USB 轉 RS232/485」，否則任何非隔離轉接方案（**MOXA UPort 1110、UNITEK USB-RS232、MAX3232 模組**），**只要在輸出端串上 MOXA TCC-82，立刻全模式升級為具備 4 kV 光耦電氣隔離的最高防護等級**！
+   - **全模式通用保險**：TCC-82 採標準 DB9 母進公出，**在全模式（模式一至模式五）中均可自由串接使用**！
+   - **通用串接原則**：除非直接使用一體成型的「微雪 Waveshare 工業級隔離 USB 轉 RS232/485」，否則任何非隔離轉接方案（**MOXA UPort 1110、UNITEK USB-RS232、MAX3232 模組、FT232BL / CP2104**），**只要在輸出端串上 MOXA TCC-82，立刻全模式升級為具備 4 kV 光耦電氣隔離的最高防護等級**！
    - **實體串接方案**：
-     `[主控：筆電 / PC / 手機 / RK3568 / ESP32] ──► [MOXA UPort 1110 / UNITEK / MAX3232] ──► [MOXA TCC-82 (4kV 光電隔離器)] ──► [特製 DB9-RJ11 線] ──► [NTU-1200 Remote Port]`
+     `[主控：筆電 / PC / 手機 / RK3568 / ESP32] ──► [USB轉RS232模組] ──► [MOXA TCC-82 (4kV 光電隔離器)] ──► [特製 DB9-RJ11 線] ──► [NTU-1200 Remote Port]`
 2. **現有小型 USB 轉 TTL 模組（開發除錯最佳搭檔）**：
    - **FT232BL (3.3V)** & **CP2104 (3.3V)**：
      - 用於：PC 與手機模擬器閉環對接測試、邏輯分析儀波形抓取、RK3568 Bootloader 除錯。
      - ⚠️ **安全警告**：此兩款為 3.3V TTL 電平，**嚴禁直插 NTU-1200 之 RJ11 (EIA RS-232 ±12V)**！
 3. **現有 RK3568 開發板 (AIO-3568J)**：
    - 刷 Android 系統：可直接安裝本專案 `android-phone-hmi`，接上觸控螢幕作為旗艦 HMI。
-   - 刷 Linux 系統：可直接執行 `pc-laptop-hmi` 的服務，作為全功能工業閘道器。
+   - 刷 Linux 系統：可直接執行 `pc-laptop-hmi` 或在瀏覽器開啟 `web-serial-hmi`，作為全功能工業閘道器。
 
 ---
 
@@ -52,30 +73,31 @@
 
 ```
 NTU-1200-112US/
-├── esp32-s3-hmi/                     # 【模式一】ESP32-S3 專用嵌入式觸控控制面板
-│   ├── platformio.ini                # PlatformIO 設定 (ESP32-S3, PSRAM, LovyanGFX, LVGL 8.3)
-│   ├── src/                          # LVGL 8.3 工業暗黑介面、FreeRTOS 雙任務
+├── esp32-s3-hmi/                     # 【模式一】ESP32-S3 專用嵌入式觸控控制面板 (LVGL 8.3)
+│   ├── platformio.ini                # PlatformIO 設定 (ESP32-S3, PSRAM, LovyanGFX)
 │   └── README.md                     # 模式一完整操作與燒錄說明
 │
 ├── android-phone-hmi/                # 【模式二】Android 手機/平板控制面板 (小米/紅米/AIO-3568J)
-│   ├── protocol/                     # 【純 Kotlin 協定模組】(可獨立在 PC 執行 JUnit 單元測試)
+│   ├── protocol/                     # 【純 Kotlin 協定模組】(PC 可獨立跑 JUnit 測試)
 │   ├── app/                          # 【Android 應用程式模組】(minSdk 21, targetSdk 34)
-│   │   ├── src/main/java/            # 串列埠管理、輪詢排程器、5大分頁、TTS 語音
-│   │   └── src/main/res/xml/device_filter.xml # 支援 FTDI/CH340/MOXA/CP2104 自動喚醒
 │   └── docs/                         # 硬體直供改裝、淘寶採購指南、Golden Fixtures
 │
 ├── pc-laptop-hmi/                    # 【模式三】筆電 / 工控 PC 桌面與 Web 監控中心 (VS / VS Code / EXE)
 │   ├── NTU1200_HMI.sln               # Visual Studio Insiders / VS 2022 方案檔
 │   ├── Ntu1200Hmi.csproj             # .NET 8/10 WPF 專案檔 (相容 Visual Studio Code)
-│   ├── MainWindow.xaml / .cs         # 現代工業暗黑風桌面 HMI (電力潮流、Gauges、60s 趨勢圖、安全確認)
+│   ├── MainWindow.xaml / .cs         # 高對比通訊埠選單、雙模式切換、電力潮流、趨勢圖
 │   ├── ViewModels/ / Models/         # MVVM 數據模型、自動探測與 500ms 輪詢排程
-│   ├── Services/SerialManager.cs     # 智慧串口探測 (WMI 辨識 MOXA/UNITEK/FTDI/CP2104/CH340)
-│   ├── build_exe.bat                 # 一鍵編譯發布獨立單一 EXE 執行檔 (publish/NTU1200_HMI.exe)
-│   ├── publish/                      # 發布目錄 (內含編譯好的 NTU1200_HMI.exe，直接運行)
-│   ├── server.py / static/           # 同步隨附之輕量化 Web 網頁監控伺服器
+│   ├── publish/                      # 發布目錄 (內含編譯好的獨立單一 NTU1200_HMI.exe，雙擊即開)
 │   └── README.md                     # 筆電 / PC 應用完整操作與編譯指南
 │
-├── docs/                             # 通用原廠技術文檔與特製品製作指引
+├── web-serial-hmi/                   # 【模式五】GitHub Pages 雲端免安裝 Web Serial HMI (純前端)
+│   ├── index.html                    # 零安裝 Web 應用首頁 (雙模式介面、安全彈窗、動態圖表)
+│   ├── style.css                     # 工業級暗黑美學樣式表、響應式佈局
+│   ├── app.js                        # W3C Web Serial 通訊驅動、自動輪詢、展示模式引擎
+│   └── README.md                     # Web HMI 操作手冊與 GitHub Pages 設定教學
+│
+├── docs/                             # GitHub Pages 線上託管目錄 & 通用原廠技術文檔
+│   ├── index.html / style.css / app.js # GitHub Pages 直接託管之 Web HMI 實體檔案
 │   ├── Meanwell_NTU-1200-spec-cn.pdf # 明緯原廠規格書 (112US 額定1200W, 110V 60Hz)
 │   ├── NTS,NTU-C.pdf                 # 明緯原廠 NTS/NTU 遠端通訊使用手冊
 │   ├── NTU-1200-112US_HMI_Manual.md  # 完整工程指南

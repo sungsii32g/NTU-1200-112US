@@ -23,6 +23,16 @@ public partial class MainWindow : Window
         ViewModel.RefreshPorts();
     }
 
+    private void BtnSwitchMonitor_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SelectedUiMode = 0;
+    }
+
+    private void BtnSwitchEngineering_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SelectedUiMode = 1;
+    }
+
     private void BtnTurnOnAC_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.SendTurnOnAC();
@@ -48,6 +58,36 @@ public partial class MainWindow : Window
         ViewModel.SendUnlock();
     }
 
+    private void BtnSet110V60Hz_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SendConfigureVoltage("110", "060");
+    }
+
+    private void BtnSet115V60Hz_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SendConfigureVoltage("115", "060");
+    }
+
+    private void BtnSet120V60Hz_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SendConfigureVoltage("120", "060");
+    }
+
+    private void BtnSet110V50Hz_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SendConfigureVoltage("110", "050");
+    }
+
+    private void BtnQueryInfo_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SendQueryDeviceInfo();
+    }
+
+    private void BtnSendCustomCmd_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SendRawCommand(TxtCustomCmd.Text);
+    }
+
     private void TrendCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         RedrawChart();
@@ -55,6 +95,8 @@ public partial class MainWindow : Window
 
     private void RedrawChart()
     {
+        if (ViewModel.SelectedUiMode != 0) return; // 僅在監控模式重繪
+
         TrendCanvas.Children.Clear();
         var w = TrendCanvas.ActualWidth;
         var h = TrendCanvas.ActualHeight;
@@ -85,7 +127,7 @@ public partial class MainWindow : Window
 
         double stepX = chartW / (history.Count - 1);
 
-        // 1. 電池電壓折線 (10V ~ 16V, 綠色)
+        // 1. 電池電壓折線 (10V ~ 16.5V, 綠色)
         var polyVbat = new Polyline
         {
             Stroke = (Brush)FindResource("AccentGreen"),
@@ -104,12 +146,10 @@ public partial class MainWindow : Window
             var x = padL + i * stepX;
             var (vbat, watts) = history[i];
 
-            // 換算 Y: Vbat (10 ~ 16.5V)
             var clampedV = Math.Max(10.0, Math.Min(16.5, vbat));
             var yV = padT + chartH - ((clampedV - 10.0) / 6.5) * chartH;
             polyVbat.Points.Add(new Point(x, yV));
 
-            // 換算 Y: Watts (0 ~ 1400W)
             var clampedW = Math.Max(0.0, Math.Min(1400.0, watts));
             var yW = padT + chartH - (clampedW / 1400.0) * chartH;
             polyWatts.Points.Add(new Point(x, yW));

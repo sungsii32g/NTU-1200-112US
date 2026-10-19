@@ -152,12 +152,40 @@ public class MainViewModel : INotifyPropertyChanged
     private bool _eepromError;
     public bool EepromError { get => _eepromError; set { _eepromError = value; OnPropertyChanged(); } }
 
+    // 介面模式切換 (0: 監控模式, 1: 工程應用模式)
+    private int _selectedUiMode = 0;
+    public int SelectedUiMode
+    {
+        get => _selectedUiMode;
+        set 
+        { 
+            _selectedUiMode = value; 
+            OnPropertyChanged(); 
+            OnPropertyChanged(nameof(IsMonitorMode));
+            OnPropertyChanged(nameof(IsEngineeringMode));
+        }
+    }
+
+    public bool IsMonitorMode => SelectedUiMode == 0;
+    public bool IsEngineeringMode => SelectedUiMode == 1;
+
+    // 工程模式屬性
+    private bool _isParamUnlocked = false;
+    public bool IsParamUnlocked { get => _isParamUnlocked; set { _isParamUnlocked = value; OnPropertyChanged(); } }
+
+    private string _deviceInfoText = "尚未查詢設備資訊";
+    public string DeviceInfoText { get => _deviceInfoText; set { _deviceInfoText = value; OnPropertyChanged(); } }
+
+    private string _rawCommandInput = "Q";
+    public string RawCommandInput { get => _rawCommandInput; set { _rawCommandInput = value; OnPropertyChanged(); } }
+
     // 終端機日誌
     private string _txLine = "Q\\r";
     public string TxLine { get => _txLine; set { _txLine = value; OnPropertyChanged(); } }
 
     private string _rxLine = "尚未接收";
     public string RxLine { get => _rxLine; set { _rxLine = value; OnPropertyChanged(); } }
+
 
     // 歷史數據緩存 (供折線圖)
     public List<(double vbat, double watts)> HistoryPoints { get; } = new();
@@ -232,8 +260,34 @@ public class MainViewModel : INotifyPropertyChanged
     public void SendUnlock()
     {
         var res = _serialManager.SendCommand("pU\r");
-        MessageBox.Show(res.message, "操作結果", MessageBoxButton.OK, res.success ? MessageBoxImage.Information : MessageBoxImage.Warning);
+        IsParamUnlocked = res.success;
+        MessageBox.Show(res.message, "參數解鎖結果", MessageBoxButton.OK, res.success ? MessageBoxImage.Information : MessageBoxImage.Warning);
     }
+
+    public void SendQueryDeviceInfo()
+    {
+        var res = _serialManager.SendCommand("I\r");
+        if (SelectedPort?.PortName == "MOCK")
+        {
+            DeviceInfoText = "MEAN WELL NTU-1200-112US (FW: REV-1.02, 110Vac 60Hz 1200W)";
+        }
+    }
+
+    public void SendConfigureVoltage(string voltage, string freq)
+    {
+        // 先發送解鎖，再發送配置
+        _serialManager.SendCommand("pU\r");
+        Thread.Sleep(50);
+        var res = _serialManager.SendCommand($"V {voltage} {freq}\r");
+        MessageBox.Show($"輸出配置 ({voltage}V / {freq}Hz): {res.message}", "工程配置結果", MessageBoxButton.OK, res.success ? MessageBoxImage.Information : MessageBoxImage.Warning);
+    }
+
+    public void SendRawCommand(string customCmd)
+    {
+        if (string.IsNullOrWhiteSpace(customCmd)) return;
+        _serialManager.SendCommand(customCmd.Trim());
+    }
+
 
     private void OnTelemetryReceivedHandler(NtuTelemetry data)
     {
