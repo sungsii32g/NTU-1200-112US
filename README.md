@@ -1,4 +1,8 @@
-# MEAN WELL NTU-1200-112US 多架構工業級監控控制系統 (Multi-Platform HMI System)
+<p align="center">
+  <img src="logo.png" width="180" alt="柴閣巴物 SHIBA & PUG" style="border-radius: 50%; box-shadow: 0 8px 24px rgba(0,0,0,0.3);" />
+</p>
+
+# 柴閣巴物 • MEAN WELL NTU-1200-112US 多架構工業級監控控制系統 (Multi-Platform HMI System)
 
 [![PlatformIO](https://img.shields.io/badge/Mode%201-ESP32--S3%20%2B%20LVGL-orange.svg)](esp32-s3-hmi/)
 [![Android](https://img.shields.io/badge/Mode%202-Android%20Phone%20HMI-green.svg)](android-phone-hmi/)
