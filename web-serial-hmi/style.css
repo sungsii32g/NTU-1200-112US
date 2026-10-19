@@ -706,3 +706,106 @@ body {
   .flow-node, .flow-core, .flow-node-bottom { max-width: 100%; grid-column: 1 !important; grid-row: auto !important; margin: 0; }
   .engineering-grid { grid-template-columns: 1fr; }
 }
+
+/* 19-Bit 診斷指示燈矩陣 */
+.diagnostic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.diag-item {
+  background: #0f172a;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  transition: all 0.2s ease;
+}
+.diag-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #334155;
+  flex-shrink: 0;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+.diag-dot.active-normal {
+  background: var(--accent-green);
+  box-shadow: 0 0 8px var(--accent-green);
+}
+.diag-dot.active-alarm {
+  background: var(--accent-red);
+  box-shadow: 0 0 8px var(--accent-red);
+}
+.diag-content {
+  display: flex;
+  flex-direction: column;
+}
+.diag-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.diag-bit {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+.diag-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+}
+.diag-desc {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+/* 規格表卡片 */
+.specs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+.specs-table td {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.specs-label {
+  color: var(--text-dim);
+  width: 35%;
+}
+.specs-val {
+  font-weight: 700;
+  color: #fff;
+}
+
+/* 自選電壓頻率組合 */
+.custom-v-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.styled-select {
+  background: #0f172a;
+  border: 1.5px solid var(--accent-cyan);
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+.styled-select option {
+  background: #162032;
+  color: #fff;
+}
+

@@ -83,6 +83,19 @@ public partial class MainWindow : Window
         ViewModel.SendQueryDeviceInfo();
     }
 
+    private void BtnApplyVoltage_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SendApplySelectedVoltageConfig();
+    }
+
+    private void BtnQuickCmd_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string cmd)
+        {
+            ViewModel.SendQuickCommand(cmd);
+        }
+    }
+
     private void BtnSendCustomCmd_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.SendRawCommand(TxtCustomCmd.Text);

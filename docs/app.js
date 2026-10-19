@@ -97,12 +97,62 @@ const modalBody = document.getElementById('modalBody');
 const modalBtnCancel = document.getElementById('modalBtnCancel');
 const modalBtnConfirm = document.getElementById('modalBtnConfirm');
 
-// 檢查 Web Serial API 支援度
-const hasWebSerial = 'serial' in navigator;
-if (!hasWebSerial) {
+// 19 位元狀態與保護定義
+const bitDefinitions = [
+  { idx: 0, name: "逆變輸出運作", desc: "逆變電路工作中 (Inverting Active)", isAlarm: false },
+  { idx: 1, name: "UPS 市電旁路", desc: "負載由市電 Bypass 供應中", isAlarm: false },
+  { idx: 2, name: "市電交流正常", desc: "市電交流輸入電壓正常在線", isAlarm: false },
+  { idx: 3, name: "市電充電致能", desc: "市網對電池充電迴路工作中", isAlarm: false },
+  { idx: 4, name: "太陽能充電", desc: "太陽能充電輸入運作中", isAlarm: false },
+  { idx: 5, name: "綠能節能模式", desc: "低負載自動休眠省電功能工作中", isAlarm: false },
+  { idx: 6, name: "散熱風扇運轉", desc: "內部強制風冷散熱風扇啟動", isAlarm: false },
+  { idx: 7, name: "電池高壓警報", desc: "電池輸入電壓高於預警門檻 (15.5V)", isAlarm: true },
+  { idx: 8, name: "電池低壓警報", desc: "電池輸入電壓低於預警門檻 (11.0V)", isAlarm: true },
+  { idx: 9, name: "輕度過載警報", desc: "輸出負載超過 100% 額定容量 (1200W)", isAlarm: true },
+  { idx: 10, name: "重度湧浪過載", desc: "輸出負載達到 115% 限制時間運轉", isAlarm: true },
+  { idx: 11, name: "交流輸入異常", desc: "市電輸入超出容許頻率或電壓波形", isAlarm: true },
+  { idx: 12, name: "高壓母線異常", desc: "機內直流升壓高壓母線電壓偏離", isAlarm: true },
+  { idx: 13, name: "內部過溫警報", desc: "功率元件散熱片溫度接近上限", isAlarm: true },
+  { idx: 14, name: "序列通訊握手", desc: "RS-232 遠端通訊串列資料流同步中", isAlarm: false },
+  { idx: 15, name: "節能待機睡眠", desc: "逆變器進入低功耗省電睡眠狀態", isAlarm: false },
+  { idx: 16, name: "逆變故障警告", desc: "硬體嚴重故障告警 (Fault Alarm)", isAlarm: true },
+  { idx: 17, name: "EEPROM 錯誤", desc: "內部儲存參數晶片讀寫錯誤", isAlarm: true },
+  { idx: 18, name: "系統綜合警告", desc: "警告旗標觸發，請檢查現場設備", isAlarm: true }
+];
+
+function initDiagnosticGrid() {
+  const grid = document.getElementById('diagnosticGrid');
+  if (!grid) return;
+  grid.innerHTML = bitDefinitions.map(b => `
+    <div class="diag-item" id="diagBit_${b.idx}">
+      <span class="diag-dot" id="dotBit_${b.idx}"></span>
+      <div class="diag-content">
+        <div class="diag-title-row">
+          <span class="diag-bit">Bit ${b.idx}</span>
+          <span class="diag-name">${b.name}</span>
+        </div>
+        <span class="diag-desc">${b.desc}</span>
+      </div>
+    </div>
+  `).join('');
+}
+initDiagnosticGrid();
+
+// 檢查 Web Serial API 支援度與環境協定
+const isLocalFile = window.location.protocol === 'file:';
+const hasWebSerial = ('serial' in navigator) && !isLocalFile;
+
+if (isLocalFile) {
+  browserWarning.classList.remove('hidden');
+  const warnText = document.getElementById('browserWarningText');
+  if (warnText) {
+    warnText.innerHTML = '⚠️ <strong>本機檔案限制提示</strong>：瀏覽器基於 W3C 安全規範禁止在本地檔案 (<code>file://</code>) 下存取硬體序列埠。若在本機運行，請雙擊根目錄下的 <code>start_web_local.bat</code>（自動啟動本機安全網頁伺服器）或使用 GitHub Pages 網址連線！已為您自動切換至展示模式。';
+  }
+  btnWebSerial.classList.add('hidden');
+  startDemoMode();
+} else if (!hasWebSerial) {
   browserWarning.classList.remove('hidden');
   btnWebSerial.classList.add('hidden');
-  // 自動進入模擬展示模式
   startDemoMode();
 }
 
@@ -122,20 +172,11 @@ tabEngineering.addEventListener('click', () => {
   viewMonitor.classList.remove('active');
 });
 
-// 連接 Web Serial 串口
+// 連接 Web Serial 串口 (無限制過濾器，顯示所有可用串口包含 MOXA/FTDI/UNITEK)
 btnWebSerial.addEventListener('click', async () => {
   if (!hasWebSerial) return;
   try {
-    // 呼叫原生串口選擇器 (支援過濾常規串口 VID)
-    serialPort = await navigator.serial.requestPort({
-      filters: [
-        { usbVendorId: 0x0403 }, // FTDI (FT232BL, FT232RL)
-        { usbVendorId: 0x110A }, // MOXA (UPort 1110, 1150)
-        { usbVendorId: 0x10C4 }, // Silicon Labs (CP2104, CP2102)
-        { usbVendorId: 0x1A86 }, // WCH (CH340)
-        { usbVendorId: 0x067B }  // Prolific (UNITEK PL2303)
-      ]
-    });
+    serialPort = await navigator.serial.requestPort();
 
     await serialPort.open({
       baudRate: 9600,
@@ -405,6 +446,18 @@ function parseAndRender(rawStr) {
   updateFlag(flagFault, fault, true);
   updateFlag(flagEeprom, eepromErr, true);
 
+  // 19-Bit 診斷指示燈矩陣點陣刷新
+  bitDefinitions.forEach(b => {
+    const dot = document.getElementById(`dotBit_${b.idx}`);
+    if (dot && bitStr.length > b.idx) {
+      const isActive = bitStr[b.idx] === '1';
+      dot.className = 'diag-dot';
+      if (isActive) {
+        dot.classList.add(b.isAlarm ? 'active-alarm' : 'active-normal');
+      }
+    }
+  });
+
   // 繪製儀表量表
   drawGauge(ctxBat, battVolt, 9.5, 16.5, 11.0, 10.0, true);
   drawGauge(ctxLoad, loadWatts, 0, 1400, 1200, 1380, false);
@@ -587,6 +640,30 @@ document.querySelectorAll('.btn-voltage').forEach(btn => {
     setTimeout(() => {
       sendCommand(`V ${v} ${f}\r`);
     }, 60);
+  });
+});
+
+// 自訂電壓頻率配置套用
+const btnApplyCustomV = document.getElementById('btnApplyCustomV');
+const selectVoltage = document.getElementById('selectVoltage');
+const selectFreq = document.getElementById('selectFreq');
+
+if (btnApplyCustomV && selectVoltage && selectFreq) {
+  btnApplyCustomV.addEventListener('click', async () => {
+    const v = selectVoltage.value;
+    const f = selectFreq.value;
+    await sendCommand('pU\r');
+    setTimeout(() => {
+      sendCommand(`V ${v} ${f}\r`);
+    }, 60);
+  });
+}
+
+// 常用快捷指令群按鈕
+document.querySelectorAll('.btn-quick-cmd').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const cmd = btn.getAttribute('data-cmd');
+    if (cmd) sendCommand(cmd);
   });
 });
 

@@ -28,18 +28,33 @@
 
 ---
 
-## 🚀 部署至 GitHub Pages
+## 🚀 部署至 GitHub Pages（全自動 CI/CD 流程）
 
-本專案目錄已同步發佈至儲存庫中的 `/docs` 資料夾，您只需在 GitHub 上完成以下 3 個步驟即可啟用線上網頁：
+本儲存庫已內建 **GitHub Actions 自動部署工作流程** ([`.github/workflows/deploy-pages.yml`](../.github/workflows/deploy-pages.yml))：
 
-1. 登入 GitHub，進入本專案儲存庫頁面：`https://github.com/sungsii32g/NTU-1200-112US`
-2. 點擊頂部的 **「Settings」** -> 左側選單點擊 **「Pages」**。
-3. 在 **「Build and deployment」** 區塊：
-   - **Source** 選擇：`Deploy from a branch`
-   - **Branch** 選擇：`main` 分支，資料夾選擇 `/docs`
-   - 點擊 **「Save」** 儲存。
-4. 約 1~2 分鐘後，即可在頁面上方獲得專屬網址：
+1. **全自動發布**：
+   - 每次推送到 `main` 分支時，GitHub Actions 會自動將 `/docs` 目錄打包並發布至 GitHub Pages。
+2. **手動啟用一次性設定 (若尚未啟用 Pages)**：
+   - 進入儲存庫頁面：`https://github.com/sungsii32g/NTU-1200-112US`
+   - 點擊頂部 **「Settings」** ➔ 左側選單 **「Pages」**。
+   - 在 **Build and deployment** 區塊：
+     - **Source** 選擇：`GitHub Actions`（推薦）或 `Deploy from a branch` (Branch: `main`, Folder: `/docs`)。
+3. 部署完成後，即可在任何連網裝置（電腦或 Android 手機）直接開啟網址進行硬體控制：
    👉 **`https://sungsii32g.github.io/NTU-1200-112US/`**
+
+---
+
+## 💻 本地離線單機運行（解決 file:// 協定限制）
+
+> [!IMPORTANT]
+> **瀏覽器安全規範說明**：
+> 現代瀏覽器（Chrome、Edge）基於 W3C 安全規範，**禁止在本地檔案模式 (`file://`) 下存取硬體序列埠**。
+> 若直接雙擊 `index.html` 開啟，瀏覽器會封鎖 `navigator.serial`。
+
+**本機單機連線最佳解法（一鍵啟動）**：
+- 直接雙擊專案根目錄下的 **`start_web_local.bat`**。
+- 該批次檔會啟動本機極輕量 Python 安全伺服器並自動開啟 `http://localhost:8080/`。
+- 在 `http://localhost` 來源下，瀏覽器完全認定為安全環境 (Secure Context)，**可 100% 正常辨識並連接所有 USB 串列埠硬體**！
 
 ---
 
@@ -63,15 +78,3 @@
 > **⚠️ 工業安全警語**：
 > 明緯 NTU-1200 RS-232 內部的通訊地線（RJ11 Pin 3）直接連接逆變器負載內部邏輯接地。為防止地電位差或雷擊突波擊毀電腦主機板或手機 Type-C 連接埠，非隔離型轉接模組請務必串接 **MOXA TCC-82 (具備 4 kV RMS 光電隔離)**！
 
----
-
-## 💻 本地測試與離線運行
-
-如果您希望在沒有網路的環境下運行：
-1. 直接使用 Chrome 或 Edge 瀏覽器打開 `web-serial-hmi/index.html`。
-2. 或在專案目錄下啟動本機簡易 HTTP 伺服器：
-   ```bash
-   # 使用 Python
-   python -m http.server 8080 --directory web-serial-hmi
-   # 接著在瀏覽器打開 http://localhost:8080
-   ```

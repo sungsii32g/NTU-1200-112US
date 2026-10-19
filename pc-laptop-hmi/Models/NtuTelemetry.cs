@@ -18,6 +18,7 @@ public class NtuTelemetry
     public bool Fault { get; set; }
     public bool EepromError { get; set; }
 
+    public string RawBitString { get; set; } = "0000000000000000000";
     public string PowerPath { get; set; } = "STANDBY";
     public string BatteryStatus { get; set; } = "UNKNOWN";
     public long LatencyMs { get; set; }
@@ -54,6 +55,7 @@ public class NtuTelemetry
             model.LoadWatts = Math.Round(model.LoadPercent * (1200.0 / 100.0), 1);
 
             var bitStr = tokens[9];
+            model.RawBitString = bitStr;
             model.InverterActive = bitStr.Length > 0 && bitStr[0] == '1';
             model.UtilityBypass = bitStr.Length > 1 && bitStr[1] == '1';
             model.GridNormal = bitStr.Length > 2 && bitStr[2] == '1';

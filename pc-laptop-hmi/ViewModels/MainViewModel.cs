@@ -187,6 +187,27 @@ public class MainViewModel : INotifyPropertyChanged
     public string RxLine { get => _rxLine; set { _rxLine = value; OnPropertyChanged(); } }
 
 
+    // 19-Bit 診斷矩陣
+    public ObservableCollection<BitFlagInfo> DiagnosticBits { get; } = new();
+
+    // 電壓與頻率選擇
+    private string _selectedVoltage = "110";
+    public string SelectedVoltage
+    {
+        get => _selectedVoltage;
+        set { _selectedVoltage = value; OnPropertyChanged(); }
+    }
+
+    private string _selectedFreq = "060";
+    public string SelectedFreq
+    {
+        get => _selectedFreq;
+        set { _selectedFreq = value; OnPropertyChanged(); }
+    }
+
+    public List<string> VoltageOptions { get; } = new() { "110", "120", "115", "100" };
+    public List<string> FreqOptions { get; } = new() { "060", "050" };
+
     // 歷史數據緩存 (供折線圖)
     public List<(double vbat, double watts)> HistoryPoints { get; } = new();
 
@@ -194,6 +215,7 @@ public class MainViewModel : INotifyPropertyChanged
 
     public MainViewModel()
     {
+        InitializeDiagnosticBits();
         _serialManager = new SerialManager();
         _serialManager.OnTelemetryReceived += OnTelemetryReceivedHandler;
         _serialManager.OnStatusChanged += OnStatusChangedHandler;
@@ -201,6 +223,45 @@ public class MainViewModel : INotifyPropertyChanged
         _serialManager.OnRxPacket += rx => Application.Current?.Dispatcher.Invoke(() => RxLine = rx);
 
         RefreshPorts();
+    }
+
+    private void InitializeDiagnosticBits()
+    {
+        var bitDefs = new (int idx, string name, string desc, bool isAlarm)[]
+        {
+            (0, "逆變輸出運作", "逆變電路工作中 (Inverting Active)", false),
+            (1, "UPS 市電旁路", "負載由市電 Bypass 供應中", false),
+            (2, "市電交流正常", "市電交流輸入電壓正常在線", false),
+            (3, "市電充電致能", "市網對電池充電迴路工作中", false),
+            (4, "太陽能充電", "太陽能充電輸入運作中", false),
+            (5, "綠能節能模式", "低負載自動休眠省電功能工作中", false),
+            (6, "散熱風扇運轉", "內部強制風冷散熱風扇啟動", false),
+            (7, "電池高壓警報", "電池輸入電壓高於預警門檻 (15.5V)", true),
+            (8, "電池低壓警報", "電池輸入電壓低於預警門檻 (11.0V)", true),
+            (9, "輕度過載警報", "輸出負載超過 100% 額定容量 (1200W)", true),
+            (10, "重度湧浪過載", "輸出負載達到 115% 限制時間運轉", true),
+            (11, "交流輸入異常", "市電輸入超出容許頻率或電壓波形", true),
+            (12, "高壓母線異常", "機內直流升壓高壓母線電壓偏離", true),
+            (13, "內部過溫警報", "功率元件散熱片溫度接近上限", true),
+            (14, "序列通訊握手", "RS-232 遠端通訊串列資料流同步中", false),
+            (15, "節能待機睡眠", "逆變器進入低功耗省電睡眠狀態", false),
+            (16, "逆變故障警告", "硬體嚴重故障告警 (Fault Alarm)", true),
+            (17, "EEPROM 錯誤", "內部儲存參數晶片讀寫錯誤", true),
+            (18, "系統綜合警告", "警告旗標觸發，請檢查現場設備", true)
+        };
+
+        DiagnosticBits.Clear();
+        foreach (var def in bitDefs)
+        {
+            DiagnosticBits.Add(new BitFlagInfo
+            {
+                Index = def.idx,
+                Name = def.name,
+                Description = def.desc,
+                IsActive = false,
+                IsAlarm = def.isAlarm
+            });
+        }
     }
 
     public void RefreshPorts()
@@ -211,7 +272,9 @@ public class MainViewModel : INotifyPropertyChanged
         {
             AvailablePorts.Add(p);
         }
-        SelectedPort = AvailablePorts.FirstOrDefault();
+        // 若有實體硬體串口 (如 MOXA COM1)，優先選取實體串口讓使用者一目了然；否則選取 AUTO
+        var physicalPort = AvailablePorts.FirstOrDefault(p => p.PortName != "AUTO" && p.PortName != "MOCK");
+        SelectedPort = physicalPort ?? AvailablePorts.FirstOrDefault();
     }
 
     public void ToggleConnect()
@@ -282,12 +345,23 @@ public class MainViewModel : INotifyPropertyChanged
         MessageBox.Show($"輸出配置 ({voltage}V / {freq}Hz): {res.message}", "工程配置結果", MessageBoxButton.OK, res.success ? MessageBoxImage.Information : MessageBoxImage.Warning);
     }
 
+    public void SendApplySelectedVoltageConfig()
+    {
+        SendConfigureVoltage(SelectedVoltage, SelectedFreq);
+    }
+
+    public void SendQuickCommand(string cmd)
+    {
+        if (string.IsNullOrWhiteSpace(cmd)) return;
+        var res = _serialManager.SendCommand(cmd);
+        MessageBox.Show($"快捷指令 [{cmd.Trim()}] 執行結果: {res.message}", "指令發送", MessageBoxButton.OK, res.success ? MessageBoxImage.Information : MessageBoxImage.Warning);
+    }
+
     public void SendRawCommand(string customCmd)
     {
         if (string.IsNullOrWhiteSpace(customCmd)) return;
         _serialManager.SendCommand(customCmd.Trim());
     }
-
 
     private void OnTelemetryReceivedHandler(NtuTelemetry data)
     {
@@ -308,6 +382,15 @@ public class MainViewModel : INotifyPropertyChanged
             SavingMode = data.SavingMode;
             Fault = data.Fault;
             EepromError = data.EepromError;
+
+            // 更新 19-Bit 診斷矩陣
+            if (!string.IsNullOrEmpty(data.RawBitString))
+            {
+                for (int i = 0; i < DiagnosticBits.Count && i < data.RawBitString.Length; i++)
+                {
+                    DiagnosticBits[i].IsActive = data.RawBitString[i] == '1';
+                }
+            }
 
             PowerPath = data.PowerPath switch
             {

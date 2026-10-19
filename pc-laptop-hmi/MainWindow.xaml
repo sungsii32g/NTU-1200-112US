@@ -5,18 +5,27 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:Ntu1200Hmi.ViewModels"
         mc:Ignorable="d"
-        Title="MEAN WELL NTU-1200-112US 筆電 / 工控 PC 桌面監控中心"
-        Width="1320" Height="900" MinWidth="1050" MinHeight="750"
-        Background="{StaticResource BgPrimary}"
-        Foreground="{StaticResource TextMain}"
-        WindowStartupLocation="CenterScreen">
+        Title="MEAN WELL NTU-1200-112US 工業級監控與工程控制中心"
+        Height="960" Width="1380" MinHeight="750" MinWidth="1100"
+        WindowStartupLocation="CenterScreen"
+        Background="#0B0F19" Foreground="#F8FAFC"
+        FontFamily="Segoe UI, Microsoft JhengHei, PingFang SC, sans-serif">
 
     <Window.DataContext>
         <vm:MainViewModel x:Name="ViewModel" />
     </Window.DataContext>
 
     <Window.Resources>
-        <!-- 系統原生 Boolean 到 Visibility 轉換器 -->
+        <!-- 主題色彩定義 -->
+        <SolidColorBrush x:Key="CardBg" Color="#131B2E" />
+        <SolidColorBrush x:Key="CardBorder" Color="#1E293B" />
+        <SolidColorBrush x:Key="AccentCyan" Color="#06B6D4" />
+        <SolidColorBrush x:Key="AccentGreen" Color="#10B981" />
+        <SolidColorBrush x:Key="AccentAmber" Color="#F59E0B" />
+        <SolidColorBrush x:Key="AccentRed" Color="#EF4444" />
+        <SolidColorBrush x:Key="TextDim" Color="#64748B" />
+        <SolidColorBrush x:Key="TextMuted" Color="#94A3B8" />
+
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
 
         <!-- 工業暗黑風卡片容器樣式 -->
@@ -54,13 +63,138 @@
             </Setter>
         </Style>
 
-        <!-- 高對比度下拉選單項目樣式 (徹底解決文字看不清問題) -->
+        <!-- 現代工業膠囊分頁按鈕樣式 (徹底去除原生白圈 ⚪ 與雜點) -->
+        <Style x:Key="SegmentedTabMonitor" TargetType="RadioButton">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="#94A3B8" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="20,10" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="tabBorder" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="tabBorder" Property="Background" Value="#1E293B" />
+                                <Setter Property="Foreground" Value="#F1F5F9" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="tabBorder" Property="Background" Value="#0284C7" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SegmentedTabEngineering" TargetType="RadioButton">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="#94A3B8" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="20,10" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="tabBorder" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="tabBorder" Property="Background" Value="#1E293B" />
+                                <Setter Property="Foreground" Value="#F1F5F9" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="tabBorder" Property="Background" Value="#D97706" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 暗黑高清晰 ComboBox ToggleButton 範本 (徹底解決白底看不清問題) -->
+        <ControlTemplate x:Key="DarkComboBoxToggleButton" TargetType="ToggleButton">
+            <Border x:Name="templateRoot" Background="#0F172A" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1.5" CornerRadius="6">
+                <Border x:Name="splitBorder" Width="30" HorizontalAlignment="Right" Background="Transparent">
+                    <Path x:Name="arrow" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{StaticResource AccentCyan}" Data="M 0 0 L 4 4 L 8 0 Z" />
+                </Border>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="templateRoot" Property="BorderBrush" Value="#38BDF8" />
+                    <Setter TargetName="arrow" Property="Fill" Value="#38BDF8" />
+                </Trigger>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter TargetName="templateRoot" Property="BorderBrush" Value="#0EA5E9" />
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!-- 全客製化深色高對比 ComboBox 樣式 -->
+        <Style x:Key="DarkComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton" 
+                                          Template="{StaticResource DarkComboBoxToggleButton}" 
+                                          Focusable="false" 
+                                          IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" 
+                                          ClickMode="Press" />
+                            <ContentPresenter x:Name="ContentSite" 
+                                              IsHitTestVisible="False" 
+                                              Content="{TemplateBinding SelectionBoxItem}" 
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" 
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" 
+                                              Margin="12,3,32,3" 
+                                              VerticalAlignment="Center" 
+                                              HorizontalAlignment="Left">
+                                <ContentPresenter.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#FFFFFF"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="FontSize" Value="13"/>
+                                    </Style>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
+                            <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                <Border Background="#0F172A" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1.5" CornerRadius="6" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="300" Margin="0,2,0,0">
+                                    <ScrollViewer SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="HasItems" Value="false">
+                                <Setter TargetName="Popup" Property="MinHeight" Value="80" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 高對比度下拉選單項目樣式 -->
         <Style x:Key="HighContrastComboItem" TargetType="ComboBoxItem">
             <Setter Property="Background" Value="#162032" />
             <Setter Property="Foreground" Value="#FFFFFF" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="Padding" Value="12,9" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBoxItem">
@@ -110,18 +244,16 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- 串列埠控制欄位 (高對比高清晰配色) -->
+                    <!-- 串列埠控制欄位 (全新客製化深色高清晰 ComboBox) -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock Text="通訊埠 (PORT)：" VerticalAlignment="Center" FontWeight="Bold" FontSize="13" Foreground="{StaticResource AccentCyan}" Margin="0,0,8,0" />
                         
                         <ComboBox ItemsSource="{Binding AvailablePorts}"
                                   SelectedItem="{Binding SelectedPort}"
                                   DisplayMemberPath="DisplayText"
+                                  Style="{StaticResource DarkComboBoxStyle}"
                                   ItemContainerStyle="{StaticResource HighContrastComboItem}"
-                                  Width="380" Height="36"
-                                  Background="#1E293B" Foreground="#FFFFFF"
-                                  BorderBrush="{StaticResource AccentCyan}" BorderThickness="1.5"
-                                  FontSize="13" FontWeight="Bold"
+                                  Width="420" Height="36"
                                   VerticalContentAlignment="Center" Margin="0,0,10,0" />
 
                         <Button Content="{Binding ConnectButtonText}" 
@@ -150,7 +282,7 @@
                 </Grid>
             </Border>
 
-            <!-- 2. 全系統統一：雙模式分頁切換按鈕 (監控模式 vs 工程應用模式) -->
+            <!-- 2. 全系統統一：雙模式膠囊切換列 (無任何原生白圈，頂規設計) -->
             <Border Grid.Row="1" Background="#0F172A" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="4" Margin="0,0,0,14">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -158,23 +290,19 @@
                         <ColumnDefinition Width="1*" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- 監控模式切換按鈕 -->
+                    <!-- 監控模式切換膠囊按鈕 -->
                     <RadioButton Grid.Column="0" Content="📊 即時監控模式 (Monitoring Mode)"
                                  IsChecked="{Binding IsMonitorMode, Mode=OneWay}"
                                  Click="BtnSwitchMonitor_Click"
                                  GroupName="UiMode"
-                                 FontSize="13" FontWeight="Bold" Foreground="White"
-                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="12,8"
-                                 Cursor="Hand" />
+                                 Style="{StaticResource SegmentedTabMonitor}" />
 
-                    <!-- 工程應用模式切換按鈕 -->
+                    <!-- 工程應用模式切換膠囊按鈕 -->
                     <RadioButton Grid.Column="1" Content="🛠️ 工程應用模式 (Engineering / Pro Mode)"
                                  IsChecked="{Binding IsEngineeringMode, Mode=OneWay}"
                                  Click="BtnSwitchEngineering_Click"
                                  GroupName="UiMode"
-                                 FontSize="13" FontWeight="Bold" Foreground="{StaticResource AccentAmber}"
-                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="12,8"
-                                 Cursor="Hand" />
+                                 Style="{StaticResource SegmentedTabEngineering}" />
                 </Grid>
             </Border>
 
@@ -197,50 +325,56 @@
                                 </Border>
                             </DockPanel>
 
+                            <!-- 潮流三節點視覺卡 -->
                             <Grid Grid.Row="1">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="1*" />
-                                    <ColumnDefinition Width="60" />
-                                    <ColumnDefinition Width="1.5*" />
-                                    <ColumnDefinition Width="60" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="1.2*" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
 
-                                <!-- 市電輸入節點 -->
-                                <Border Grid.Column="0" Background="#0F172A" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="14">
+                                <!-- 節點 1: 市電輸入 (Grid) -->
+                                <Border Grid.Column="0" Background="#0F172A" CornerRadius="10" Padding="14" BorderBrush="{StaticResource CardBorder}" BorderThickness="1">
                                     <StackPanel HorizontalAlignment="Center">
-                                        <TextBlock Text="🏢 市電輸入 (Grid)" FontSize="12" Foreground="{StaticResource TextMuted}" />
-                                        <TextBlock Text="{Binding GridInputVoltage, StringFormat='{}{0:F1} V'}" FontFamily="Consolas" FontSize="22" FontWeight="Bold" Margin="0,4,0,0" Foreground="White" />
-                                        <TextBlock Text="{Binding OutputFrequency, StringFormat='頻率: {0:F1} Hz'}" FontSize="11" Foreground="{StaticResource TextDim}" />
+                                        <TextBlock Text="市電輸入 (Grid)" FontSize="12" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding GridInputVoltage, StringFormat='{}{0:F1} V'}" FontSize="24" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" Margin="0,4" />
+                                        <TextBlock Text="AC 110V 60Hz" FontSize="11" Foreground="{StaticResource TextDim}" HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Border>
 
-                                <TextBlock Grid.Column="1" Text="────►" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource AccentCyan}" FontFamily="Consolas" FontSize="14" />
+                                <!-- 箭頭 1 -->
+                                <TextBlock Grid.Column="1" Text="➔" FontSize="20" Foreground="{StaticResource AccentCyan}" VerticalAlignment="Center" Margin="10,0" />
 
-                                <!-- 中央逆變器核心 -->
-                                <Border Grid.Column="2" Background="#111B2C" BorderBrush="{StaticResource AccentCyan}" BorderThickness="2" CornerRadius="12" Padding="14">
+                                <!-- 節點 2: NTU-1200 逆變核心 -->
+                                <Border Grid.Column="2" Background="#162032" CornerRadius="10" Padding="14" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1.5">
                                     <StackPanel HorizontalAlignment="Center">
-                                        <TextBlock Text="NTU-1200 逆變核心 / UPS" FontSize="13" FontWeight="Bold" Foreground="{StaticResource AccentCyan}" />
-                                        <TextBlock Text="{Binding PowerPath}" FontSize="15" FontWeight="Bold" Margin="0,4,0,0" Foreground="White" />
-                                        <TextBlock Text="{Binding DcBusVoltage, StringFormat='內部直流高壓母線: {0:F1} V'}" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextDim}" />
+                                        <TextBlock Text="逆變器主核心 (NTU-1200)" FontSize="12" Foreground="{StaticResource AccentCyan}" FontWeight="Bold" HorizontalAlignment="Center" />
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4">
+                                            <TextBlock Text="{Binding Temperature, StringFormat='機溫: {0:F1} °C'}" FontSize="13" FontWeight="Bold" Foreground="{StaticResource AccentAmber}" Margin="0,0,12,0" />
+                                            <TextBlock Text="{Binding DcBusVoltage, StringFormat='母線: {0:F0} V'}" FontSize="13" FontWeight="Bold" Foreground="White" />
+                                        </StackPanel>
+                                        <TextBlock Text="1200W 純弦波逆變 / UPS 旁路" FontSize="11" Foreground="{StaticResource TextDim}" HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Border>
 
-                                <TextBlock Grid.Column="3" Text="────►" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource AccentCyan}" FontFamily="Consolas" FontSize="14" />
+                                <!-- 箭頭 2 -->
+                                <TextBlock Grid.Column="3" Text="➔" FontSize="20" Foreground="{StaticResource AccentCyan}" VerticalAlignment="Center" Margin="10,0" />
 
-                                <!-- 交流輸出負載節點 -->
-                                <Border Grid.Column="4" Background="#0F172A" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="14">
+                                <!-- 節點 3: 負載輸出 (AC Load) -->
+                                <Border Grid.Column="4" Background="#0F172A" CornerRadius="10" Padding="14" BorderBrush="{StaticResource CardBorder}" BorderThickness="1">
                                     <StackPanel HorizontalAlignment="Center">
-                                        <TextBlock Text="💡 交流負載 (Load)" FontSize="12" Foreground="{StaticResource TextMuted}" />
-                                        <TextBlock Text="{Binding LoadWatts, StringFormat='{}{0:F0} W'}" FontFamily="Consolas" FontSize="22" FontWeight="Bold" Margin="0,4,0,0" Foreground="{StaticResource AccentCyan}" />
-                                        <TextBlock Text="{Binding LoadPercent, StringFormat='負載率: {0} % 額定'}" FontSize="11" Foreground="{StaticResource TextDim}" />
+                                        <TextBlock Text="交流負載 (AC Load)" FontSize="12" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{Binding LoadWatts, StringFormat='{}{0:F0} W'}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource AccentCyan}" HorizontalAlignment="Center" Margin="0,4" />
+                                        <TextBlock Text="{Binding LoadPercent, StringFormat='負載比率: {0} %'}" FontSize="11" Foreground="{StaticResource TextDim}" HorizontalAlignment="Center" />
                                     </StackPanel>
                                 </Border>
                             </Grid>
                         </Grid>
                     </Border>
 
-                    <!-- 四大核心數據儀表網格 -->
+                    <!-- 四大量測儀表卡片 -->
                     <Grid Margin="0,0,0,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1*" />
@@ -249,176 +383,303 @@
                             <ColumnDefinition Width="1*" />
                         </Grid.ColumnDefinitions>
 
-                        <!-- 卡片 1：電池電壓 -->
+                        <!-- 卡片 1: 電池直流電壓 -->
                         <Border Grid.Column="0" Style="{StaticResource IndustrialCard}" Margin="0,0,8,0">
                             <StackPanel>
-                                <DockPanel>
-                                    <TextBlock Text="直流電池電壓" Foreground="{StaticResource TextMuted}" FontSize="12" />
-                                    <TextBlock Text="{Binding BatteryStatusText}" DockPanel.Dock="Right" Foreground="{StaticResource AccentGreen}" FontWeight="Bold" FontSize="11" />
-                                </DockPanel>
-                                <TextBlock Text="{Binding BatteryVoltage, StringFormat='{}{0:F1} V'}" FontFamily="Consolas" FontSize="36" FontWeight="Bold" Foreground="{StaticResource AccentGreen}" Margin="0,10,0,4" />
-                                <TextBlock Text="保護門檻: 10.0V 關斷 / 11.0V 預警 / 16.5V 過壓" FontSize="10" Foreground="{StaticResource TextDim}" />
+                                <TextBlock Text="電池直流電壓 (Vbat)" FontSize="12" Foreground="{StaticResource TextMuted}" />
+                                <TextBlock Text="{Binding BatteryVoltage, StringFormat='{}{0:F1} V'}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentGreen}" Margin="0,6,0,2" />
+                                <TextBlock Text="{Binding BatteryStatusText}" FontSize="11" Foreground="{StaticResource TextDim}" />
                             </StackPanel>
                         </Border>
 
-                        <!-- 卡片 2：交流輸出瓦數 -->
+                        <!-- 卡片 2: 交流輸出電壓 -->
                         <Border Grid.Column="1" Style="{StaticResource IndustrialCard}" Margin="4,0,4,0">
                             <StackPanel>
-                                <DockPanel>
-                                    <TextBlock Text="交流輸出 &amp; 負載率" Foreground="{StaticResource TextMuted}" FontSize="12" />
-                                    <TextBlock Text="{Binding LoadPercent, StringFormat='{}{0}%'}" DockPanel.Dock="Right" Foreground="{StaticResource AccentCyan}" FontWeight="Bold" FontSize="11" />
-                                </DockPanel>
-                                <TextBlock Text="{Binding LoadWatts, StringFormat='{}{0:F0} W'}" FontFamily="Consolas" FontSize="36" FontWeight="Bold" Foreground="{StaticResource AccentCyan}" Margin="0,10,0,4" />
-                                <TextBlock Text="{Binding AcOutputVoltage, StringFormat='電壓: {0:F1} V (額定 1200W)'}" FontSize="10" Foreground="{StaticResource TextDim}" />
+                                <TextBlock Text="交流輸出電壓 (AC Out)" FontSize="12" Foreground="{StaticResource TextMuted}" />
+                                <TextBlock Text="{Binding AcOutputVoltage, StringFormat='{}{0:F1} V'}" FontSize="32" FontWeight="Bold" Foreground="White" Margin="0,6,0,2" />
+                                <TextBlock Text="{Binding OutputFrequency, StringFormat='輸出頻率: {0:F1} Hz'}" FontSize="11" Foreground="{StaticResource TextDim}" />
                             </StackPanel>
                         </Border>
 
-                        <!-- 卡片 3：散熱器溫度 -->
+                        <!-- 卡片 3: 負載功率瓦數 -->
                         <Border Grid.Column="2" Style="{StaticResource IndustrialCard}" Margin="4,0,4,0">
                             <StackPanel>
-                                <DockPanel>
-                                    <TextBlock Text="機內散熱器溫度" Foreground="{StaticResource TextMuted}" FontSize="12" />
-                                    <TextBlock Text="正常" DockPanel.Dock="Right" Foreground="{StaticResource AccentGreen}" FontWeight="Bold" FontSize="11" />
-                                </DockPanel>
-                                <TextBlock Text="{Binding Temperature, StringFormat='{}{0:F1} °C'}" FontFamily="Consolas" FontSize="36" FontWeight="Bold" Foreground="{StaticResource AccentGreen}" Margin="0,10,0,4" />
-                                <TextBlock Text="風扇啟動: ≥ 50°C | 過溫保護: 75°C" FontSize="10" Foreground="{StaticResource TextDim}" />
+                                <TextBlock Text="負載輸出瓦數 (Load)" FontSize="12" Foreground="{StaticResource TextMuted}" />
+                                <TextBlock Text="{Binding LoadWatts, StringFormat='{}{0:F0} W'}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentCyan}" Margin="0,6,0,2" />
+                                <TextBlock Text="{Binding LoadPercent, StringFormat='額定 1200W ({0}%)'}" FontSize="11" Foreground="{StaticResource TextDim}" />
                             </StackPanel>
                         </Border>
 
-                        <!-- 卡片 4：運作旗標 -->
+                        <!-- 卡片 4: 逆變器內部溫度 -->
                         <Border Grid.Column="3" Style="{StaticResource IndustrialCard}" Margin="8,0,0,0">
                             <StackPanel>
-                                <TextBlock Text="硬體狀態旗標" Foreground="{StaticResource TextMuted}" FontSize="12" Margin="0,0,0,8" />
-                                <UniformGrid Columns="2" Rows="3">
-                                    <CheckBox Content="逆變啟動" IsChecked="{Binding InverterActive}" IsEnabled="False" Foreground="White" Margin="0,3" />
-                                    <CheckBox Content="UPS 旁路" IsChecked="{Binding UtilityBypass}" IsEnabled="False" Foreground="White" Margin="0,3" />
-                                    <CheckBox Content="市電正常" IsChecked="{Binding GridNormal}" IsEnabled="False" Foreground="White" Margin="0,3" />
-                                    <CheckBox Content="綠能節能" IsChecked="{Binding SavingMode}" IsEnabled="False" Foreground="White" Margin="0,3" />
-                                    <CheckBox Content="故障異常" IsChecked="{Binding Fault}" IsEnabled="False" Foreground="{StaticResource AccentRed}" Margin="0,3" />
-                                    <CheckBox Content="EEPROM" IsChecked="{Binding EepromError}" IsEnabled="False" Foreground="White" Margin="0,3" />
-                                </UniformGrid>
+                                <TextBlock Text="機內散熱器溫度 (Temp)" FontSize="12" Foreground="{StaticResource TextMuted}" />
+                                <TextBlock Text="{Binding Temperature, StringFormat='{}{0:F1} °C'}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource AccentAmber}" Margin="0,6,0,2" />
+                                <TextBlock Text="正常範圍 (&lt; 65 °C)" FontSize="11" Foreground="{StaticResource TextDim}" />
                             </StackPanel>
                         </Border>
                     </Grid>
 
-                    <!-- 60 秒即時趨勢折線圖 -->
-                    <Border Style="{StaticResource IndustrialCard}" Height="230" Margin="0,0,0,14">
+                    <!-- 60 秒即時動態折線圖 -->
+                    <Border Style="{StaticResource IndustrialCard}" Margin="0,0,0,14">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
+                                <RowDefinition Height="180" />
                             </Grid.RowDefinitions>
-                            <DockPanel Grid.Row="0" Margin="0,0,0,8">
-                                <TextBlock Text="📈 60 秒即時遙測趨勢圖 (電池電壓 V 與 負載瓦數 W)" FontWeight="SemiBold" FontSize="13" />
+
+                            <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                                <TextBlock Text="📈 60 秒即時電力與負載動態趨勢圖" FontWeight="SemiBold" FontSize="14" />
                                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                                    <Rectangle Width="10" Height="4" Fill="{StaticResource AccentGreen}" Margin="0,0,4,0" />
-                                    <TextBlock Text="電池電壓 (V)" FontSize="11" Margin="0,0,14,0" />
-                                    <Rectangle Width="10" Height="4" Fill="{StaticResource AccentCyan}" Margin="0,0,4,0" />
-                                    <TextBlock Text="負載瓦數 (W)" FontSize="11" />
+                                    <Border Background="{StaticResource AccentGreen}" Width="10" Height="10" CornerRadius="2" Margin="0,0,4,0" />
+                                    <TextBlock Text="電池電壓 (V)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,0,14,0" />
+                                    <Border Background="{StaticResource AccentCyan}" Width="10" Height="10" CornerRadius="2" Margin="0,0,4,0" />
+                                    <TextBlock Text="負載瓦數 (W)" FontSize="11" Foreground="{StaticResource TextDim}" />
                                 </StackPanel>
                             </DockPanel>
+
                             <Canvas x:Name="TrendCanvas" Grid.Row="1" Background="#0A0E18" SizeChanged="TrendCanvas_SizeChanged" />
                         </Grid>
                     </Border>
                 </StackPanel>
 
-                <!-- ==================== 視圖 B：工程應用模式 (Engineering / Pro Mode) ==================== -->
+                <!-- ==================== 視圖 B：工程應用模式 (Engineering / Pro Mode - 全功能完全介面化) ==================== -->
                 <StackPanel Visibility="{Binding IsEngineeringMode, Converter={StaticResource BoolToVis}}">
-                    <!-- 核心操作控制卡片 -->
+                    
+                    <!-- 1. 核心電源開關、節能休眠與參數解鎖 (防呆確認機制) -->
                     <Border Style="{StaticResource IndustrialCard}" Margin="0,0,0,14">
                         <StackPanel>
                             <DockPanel Margin="0,0,0,14">
-                                <TextBlock Text="🛠️ 逆變器核心指令操作 (具備二次確認安全互鎖機制)" FontWeight="Bold" FontSize="15" Foreground="{StaticResource AccentAmber}" />
-                                <Border DockPanel.Dock="Right" Background="#0F172A" BorderBrush="{StaticResource AccentAmber}" BorderThickness="1" CornerRadius="8" Padding="8,3">
-                                    <TextBlock Text="🔒 互鎖保護中" Foreground="{StaticResource AccentAmber}" FontSize="12" FontWeight="SemiBold" />
+                                <TextBlock Text="⚡ 逆變器電源開關與綠能待機控制 (具備安全防呆互鎖)" FontWeight="Bold" FontSize="15" Foreground="{StaticResource AccentAmber}" />
+                                <Border DockPanel.Dock="Right" Background="#0F172A" BorderBrush="{StaticResource AccentAmber}" BorderThickness="1" CornerRadius="8" Padding="10,3">
+                                    <TextBlock Text="🔒 二次防呆保護已生效" Foreground="{StaticResource AccentAmber}" FontSize="12" FontWeight="SemiBold" />
                                 </Border>
                             </DockPanel>
 
-                            <!-- 控制項目網格 -->
-                            <Grid Margin="0,0,0,10">
+                            <!-- 控制卡片橫排 -->
+                            <Grid Margin="0,0,0,6">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1*" />
+                                    <ColumnDefinition Width="1.2*" />
                                     <ColumnDefinition Width="1*" />
                                     <ColumnDefinition Width="1*" />
                                 </Grid.ColumnDefinitions>
 
-                                <!-- 控制項 1: 交流輸出開關 -->
+                                <!-- 控制項 1: 交流輸出電源開關 -->
                                 <Border Grid.Column="0" Background="#0F172A" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,0,8,0">
                                     <StackPanel>
-                                        <TextBlock Text="交流電源輸出 (AC Output)" FontWeight="Bold" FontSize="13" />
-                                        <TextBlock Text="遠端啟動或切斷 110V 輸出 (`C 1`/`C 0`)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,2,0,12" />
+                                        <TextBlock Text="交流電源輸出 (AC Output Control)" FontWeight="Bold" FontSize="13" Foreground="White" />
+                                        <TextBlock Text="遠端啟動逆變輸出 (`C 1`) 或緊急切斷 110V 輸出 (`C 0`)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,2,0,12" />
                                         <StackPanel Orientation="Horizontal">
-                                            <Button Content="啟動逆變輸出 (C 1)" Click="BtnTurnOnAC_Click" Background="{StaticResource AccentGreen}" Style="{StaticResource IndustrialButton}" Margin="0,0,8,0" />
-                                            <Button Content="切斷輸出 (C 0)" Click="BtnTurnOffAC_Click" Background="{StaticResource AccentRed}" Style="{StaticResource IndustrialButton}" />
+                                            <Button Content="⚡ 開啟 110V 輸出 (C 1)" Click="BtnTurnOnAC_Click" Background="{StaticResource AccentGreen}" Style="{StaticResource IndustrialButton}" Margin="0,0,10,0" />
+                                            <Button Content="🛑 切斷 110V 輸出 (C 0)" Click="BtnTurnOffAC_Click" Background="{StaticResource AccentRed}" Style="{StaticResource IndustrialButton}" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
 
-                                <!-- 控制項 2: 綠能節能模式 -->
+                                <!-- 控制項 2: 綠能節能模式開關 -->
                                 <Border Grid.Column="1" Background="#0F172A" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="14" Margin="4,0,4,0">
                                     <StackPanel>
-                                        <TextBlock Text="綠能節能模式 (Saving Mode)" FontWeight="Bold" FontSize="13" />
-                                        <TextBlock Text="負載小於 10W 時進入 1.5W 待機 (`W 1`/`W 0`)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,2,0,12" />
+                                        <TextBlock Text="綠能節能待機 (Power Saving Mode)" FontWeight="Bold" FontSize="13" Foreground="White" />
+                                        <TextBlock Text="負載小於 10W 時進入 1.5W 超低待機 (`W 1`/`W 0`)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,2,0,12" />
                                         <StackPanel Orientation="Horizontal">
-                                            <Button Content="啟用節能 (W 1)" Click="BtnEnableSaving_Click" Background="#1E293B" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,0" />
+                                            <Button Content="🌿 啟用節能 (W 1)" Click="BtnEnableSaving_Click" Background="#1E293B" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,0" />
                                             <Button Content="停用節能 (W 0)" Click="BtnDisableSaving_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
 
-                                <!-- 控制項 3: 參數解鎖 -->
+                                <!-- 控制項 3: 參數解鎖防寫開關 -->
                                 <Border Grid.Column="2" Background="#0F172A" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="14" Margin="8,0,0,0">
                                     <StackPanel>
-                                        <TextBlock Text="參數解鎖 (Parameter Unlock)" FontWeight="Bold" FontSize="13" />
-                                        <TextBlock Text="寫入輸出電壓/頻率前必須發送 (`pU`)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,2,0,12" />
-                                        <Button Content="發送 pU 參數解鎖" Click="BtnUnlock_Click" Background="{StaticResource AccentAmber}" Style="{StaticResource IndustrialButton}" />
+                                        <TextBlock Text="參數解鎖 (Parameter Unlock)" FontWeight="Bold" FontSize="13" Foreground="White" />
+                                        <TextBlock Text="寫入電壓頻率前必須發送解除防寫 (`pU`)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,2,0,12" />
+                                        <Button Content="🔓 發送 pU 參數解鎖" Click="BtnUnlock_Click" Background="{StaticResource AccentAmber}" Style="{StaticResource IndustrialButton}" />
                                     </StackPanel>
                                 </Border>
                             </Grid>
                         </StackPanel>
                     </Border>
 
-                    <!-- 輸出電壓/頻率配置與設備資訊 -->
-                    <Grid Margin="0,0,0,14">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="1*" />
-                            <ColumnDefinition Width="1*" />
-                        </Grid.ColumnDefinitions>
-
-                        <!-- 電壓頻率工程配置 (自動 pU 解鎖) -->
-                        <Border Grid.Column="0" Style="{StaticResource IndustrialCard}" Margin="0,0,8,0">
-                            <StackPanel>
-                                <TextBlock Text="⚙️ 輸出電壓 / 頻率配置 (Voltage &amp; Frequency Setting)" FontWeight="Bold" FontSize="13" Margin="0,0,0,6" />
-                                <TextBlock Text="原廠指令語法: V [WWW] [OFF]（系統會自動先發送 pU 解鎖後配置）" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,0,0,10" />
-
-                                <WrapPanel>
-                                    <Button Content="設為 110V / 60Hz" Click="BtnSet110V60Hz_Click" Background="#1E293B" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
-                                    <Button Content="設為 115V / 60Hz" Click="BtnSet115V60Hz_Click" Background="#1E293B" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
-                                    <Button Content="設為 120V / 60Hz" Click="BtnSet120V60Hz_Click" Background="#1E293B" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
-                                    <Button Content="設為 110V / 50Hz" Click="BtnSet110V50Hz_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
-                                </WrapPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- 設備資訊查詢 -->
-                        <Border Grid.Column="1" Style="{StaticResource IndustrialCard}" Margin="8,0,0,0">
-                            <StackPanel>
-                                <DockPanel Margin="0,0,0,6">
-                                    <TextBlock Text="ℹ️ 設備資訊查詢 (Device Info `I\r`)" FontWeight="Bold" FontSize="13" />
-                                    <Button DockPanel.Dock="Right" Content="查詢設備資訊 (I)" Click="BtnQueryInfo_Click" Background="#1E293B" Style="{StaticResource IndustrialButton}" Padding="10,4" />
-                                </DockPanel>
-                                <Border Background="#0F172A" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,4,0,0">
-                                    <TextBlock Text="{Binding DeviceInfoText}" FontFamily="Consolas" FontSize="13" Foreground="{StaticResource AccentCyan}" />
-                                </Border>
-                            </StackPanel>
-                        </Border>
-                    </Grid>
-
-                    <!-- 自訂指令發送終端機 -->
+                    <!-- 2. 輸出電壓與頻率校正矩陣 (全介面化按鈕與下拉自選，徹底擺脫手冊) -->
                     <Border Style="{StaticResource IndustrialCard}" Margin="0,0,0,14">
                         <StackPanel>
-                            <TextBlock Text="💻 原始指令直發控制台 (Raw Command Interactive Console)" FontWeight="Bold" FontSize="13" Margin="0,0,0,6" />
-                            <TextBlock Text="可手動輸入任何明緯遠端指令 (如 `Q`, `I`, `pU`, `C 1`, `W 0`, `V 110 060`)，指令將自動附加 `\r` 結束字元發送。" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,0,0,10" />
+                            <DockPanel Margin="0,0,0,12">
+                                <TextBlock Text="⚙️ 交流輸出電壓與頻率配置 (Voltage &amp; Frequency Matrix)" FontWeight="Bold" FontSize="14" Foreground="White" />
+                                <TextBlock DockPanel.Dock="Right" Text="點擊任意配置將自動依序執行: 解鎖 pU ➔ 發送 V 指令 ➔ Q 回讀驗證" FontSize="11" Foreground="{StaticResource AccentCyan}" />
+                            </DockPanel>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.4*" />
+                                    <ColumnDefinition Width="1*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- 快速預設組合按鈕 -->
+                                <Border Grid.Column="0" Background="#0F172A" CornerRadius="10" Padding="14" Margin="0,0,8,0" BorderBrush="{StaticResource CardBorder}" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="常用國家標準快速切換 (一鍵自動解鎖與寫入)" FontSize="12" Foreground="{StaticResource TextMuted}" Margin="0,0,0,10" />
+                                        <WrapPanel>
+                                            <Button Content="110V / 60Hz (台美預設標準)" Click="BtnSet110V60Hz_Click" Background="#0284C7" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                            <Button Content="120V / 60Hz (北美高壓標準)" Click="BtnSet120V60Hz_Click" Background="#1E293B" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                            <Button Content="100V / 50Hz (日規東部 50Hz)" Click="BtnSet110V50Hz_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                            <Button Content="115V / 60Hz (美加微調)" Click="BtnSet115V60Hz_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                        </WrapPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- 自選電壓與頻率組合 -->
+                                <Border Grid.Column="1" Background="#0F172A" CornerRadius="10" Padding="14" Margin="8,0,0,0" BorderBrush="{StaticResource CardBorder}" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="自訂電壓與頻率組合" FontSize="12" Foreground="{StaticResource TextMuted}" Margin="0,0,0,10" />
+                                        <Grid Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="1*" />
+                                                <ColumnDefinition Width="1*" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                                                <TextBlock Text="電壓 (V)：" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,0,0,4" />
+                                                <ComboBox ItemsSource="{Binding VoltageOptions}" SelectedItem="{Binding SelectedVoltage}"
+                                                          Style="{StaticResource DarkComboBoxStyle}" ItemContainerStyle="{StaticResource HighContrastComboItem}" Height="34" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                                                <TextBlock Text="頻率 (Hz)：" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,0,0,4" />
+                                                <ComboBox ItemsSource="{Binding FreqOptions}" SelectedItem="{Binding SelectedFreq}"
+                                                          Style="{StaticResource DarkComboBoxStyle}" ItemContainerStyle="{StaticResource HighContrastComboItem}" Height="34" />
+                                            </StackPanel>
+                                        </Grid>
+                                        <Button Content="套用自訂電壓頻率 (Apply V)" Click="BtnApplyVoltage_Click" Background="{StaticResource AccentCyan}" Style="{StaticResource IndustrialButton}" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 3. 原廠硬體規格與身分識別卡片 (Device Info & Hardware Identification) -->
+                    <Border Style="{StaticResource IndustrialCard}" Margin="0,0,0,14">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.2*" />
+                                <ColumnDefinition Width="1*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- 左側: 明緯 NTU-1200-112US 額定規格表 -->
+                            <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                <TextBlock Text="📋 原廠型號與規格認證 (MEAN WELL NTU-1200-112US)" FontWeight="Bold" FontSize="14" Margin="0,0,0,10" />
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="連續額定功率：" Foreground="{StaticResource TextDim}" FontSize="12" Margin="0,2,6,2" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="1200W (持續滿載)" FontWeight="Bold" Foreground="White" FontSize="12" Margin="0,2,14,2" />
+
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="峰值湧浪容量：" Foreground="{StaticResource TextDim}" FontSize="12" Margin="0,2,6,2" />
+                                    <TextBlock Grid.Row="0" Grid.Column="3" Text="2000W (10秒支援)" FontWeight="Bold" Foreground="{StaticResource AccentAmber}" FontSize="12" Margin="0,2,0,2" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="直流輸入規格：" Foreground="{StaticResource TextDim}" FontSize="12" Margin="0,2,6,2" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="12Vdc (10.0~16.5V)" FontWeight="Bold" Foreground="White" FontSize="12" Margin="0,2,14,2" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="交流輸出電壓：" Foreground="{StaticResource TextDim}" FontSize="12" Margin="0,2,6,2" />
+                                    <TextBlock Grid.Row="1" Grid.Column="3" Text="110Vac 60Hz 純弦波" FontWeight="Bold" Foreground="{StaticResource AccentCyan}" FontSize="12" Margin="0,2,0,2" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="UPS 切換時間：" Foreground="{StaticResource TextDim}" FontSize="12" Margin="0,2,6,2" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="&lt; 10 ms (無縫切換)" FontWeight="Bold" Foreground="{StaticResource AccentGreen}" FontSize="12" Margin="0,2,14,2" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="2" Text="波形總諧波失真：" Foreground="{StaticResource TextDim}" FontSize="12" Margin="0,2,6,2" />
+                                    <TextBlock Grid.Row="2" Grid.Column="3" Text="THD &lt; 3% (純淨純正弦)" FontWeight="Bold" Foreground="White" FontSize="12" Margin="0,2,0,2" />
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- 右側: 設備資訊讀取 (I) -->
+                            <Border Grid.Column="1" Background="#0F172A" CornerRadius="10" Padding="14" BorderBrush="{StaticResource CardBorder}" BorderThickness="1">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,8">
+                                        <TextBlock Text="🔍 逆變器硬體版本查詢 (`I\r`)" FontWeight="Bold" FontSize="13" Foreground="White" />
+                                        <Button DockPanel.Dock="Right" Content="查詢 (I)" Click="BtnQueryInfo_Click" Background="{StaticResource AccentCyan}" Style="{StaticResource IndustrialButton}" Padding="12,4" />
+                                    </DockPanel>
+                                    <Border Background="#162032" CornerRadius="6" Padding="10" Margin="0,4,0,0">
+                                        <TextBlock Text="{Binding DeviceInfoText}" FontFamily="Consolas" FontSize="12" FontWeight="Bold" Foreground="{StaticResource AccentCyan}" TextWrapping="Wrap" />
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <!-- 4. 19-Bit 狀態旗標與硬體診斷指示燈矩陣 (Diagnostic LED Matrix) -->
+                    <Border Style="{StaticResource IndustrialCard}" Margin="0,0,0,14">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,12">
+                                <TextBlock Text="💡 19-Bit 硬體狀態與保護診斷矩陣 (逐位元即時監測)" FontWeight="Bold" FontSize="14" Foreground="White" />
+                                <TextBlock DockPanel.Dock="Right" Text="即時位元流: 綠燈=運作中 / 紅燈=異常警報 / 暗灰=閒置" FontSize="11" Foreground="{StaticResource TextDim}" />
+                            </DockPanel>
+
+                            <ItemsControl ItemsSource="{Binding DiagnosticBits}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="4" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#0F172A" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="4">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Ellipse Grid.Column="0" Width="10" Height="10" Fill="{Binding BadgeColor}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                                <StackPanel Grid.Column="1">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding BitLabel}" FontSize="10" Foreground="{StaticResource TextDim}" Margin="0,0,6,0" />
+                                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="12" Foreground="White" />
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding Description}" FontSize="10" Foreground="{StaticResource TextDim}" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 5. 常用原廠指令快捷操作台 (Quick Command Palette - 使用者免翻手冊) -->
+                    <Border Style="{StaticResource IndustrialCard}" Margin="0,0,0,14">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,10">
+                                <TextBlock Text="🚀 常用快捷指令群 (Command Palette - 點擊直接發送執行)" FontWeight="Bold" FontSize="14" Foreground="White" />
+                                <TextBlock DockPanel.Dock="Right" Text="整合常用維護與診斷命令，自動附加 \r 結束字元" FontSize="11" Foreground="{StaticResource TextDim}" />
+                            </DockPanel>
+
+                            <WrapPanel>
+                                <Button Content="[Q] 讀取即時遙測" Tag="Q\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="[I] 讀取設備規格" Tag="I\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="[pU] 解鎖參數防寫" Tag="pU\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource AccentAmber}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="[C 1] 啟動逆變輸出" Tag="C 1\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource AccentGreen}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="[C 0] 關閉逆變輸出" Tag="C 0\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource AccentRed}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="[W 1] 啟用節能待機" Tag="W 1\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="[W 0] 停用節能待機" Tag="W 0\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="[V 110 060] 設為 110V 60Hz" Tag="V 110 060\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="[V 120 060] 設為 120V 60Hz" Tag="V 120 060\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="[V 100 050] 設為 100V 50Hz" Tag="V 100 050\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 6. 原始 ASCII 指令互動終端機 (Advanced Raw Console) -->
+                    <Border Style="{StaticResource IndustrialCard}" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="💻 原始底層指令直發控制台 (Raw ASCII Interactive Terminal)" FontWeight="Bold" FontSize="14" Foreground="White" Margin="0,0,0,6" />
+                            <TextBlock Text="可手動輸入任何特殊或保留命令，軟體將自動補全 \r 結束符號並送出。" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,0,0,10" />
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -426,7 +687,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBox x:Name="TxtCustomCmd" Text="{Binding RawCommandInput, UpdateSourceTrigger=PropertyChanged}"
                                          Background="#0F172A" Foreground="#FFFFFF" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1.5"
-                                         FontSize="14" FontFamily="Consolas" FontWeight="Bold" Padding="10,8" VerticalContentAlignment="Center" Margin="0,0,10,0" />
+                                         FontSize="14" FontFamily="Consolas" FontWeight="Bold" Padding="12,8" VerticalContentAlignment="Center" Margin="0,0,10,0" />
                                 <Button Grid.Column="1" Content="發送指令 (Send)" Click="BtnSendCustomCmd_Click" Background="{StaticResource AccentCyan}" Style="{StaticResource IndustrialButton}" />
                             </Grid>
                         </StackPanel>
@@ -445,7 +706,7 @@
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" Text="{Binding TxLine, StringFormat='最後發送 (TX): {0}'}" FontFamily="Consolas" FontWeight="Bold" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,4" />
                         <TextBlock Grid.Row="1" Text="{Binding RxLine, StringFormat='最後接收 (RX): {0}'}" FontFamily="Consolas" FontWeight="Bold" Foreground="{StaticResource AccentGreen}" Margin="0,0,0,4" />
-                        <TextBlock Grid.Row="2" Text="{Binding ActiveDeviceName, StringFormat='連線設備: {0}'}" FontFamily="Consolas" Foreground="{StaticResource TextDim}" />
+                        <TextBlock Grid.Row="2" Text="{Binding ActiveDeviceName, StringFormat='連線設備狀態: {0}'}" FontFamily="Consolas" Foreground="{StaticResource TextDim}" />
                     </Grid>
                 </Border>
             </Expander>

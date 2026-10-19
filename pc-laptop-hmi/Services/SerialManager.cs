@@ -41,17 +41,14 @@ public class SerialManager
 
     public List<PortInfo> GetAvailablePorts()
     {
-        var list = new List<PortInfo>
-        {
-            new() { PortName = "AUTO", Description = "智慧自動探測鎖定", ChipType = "自動" },
-            new() { PortName = "MOCK", Description = "離線模擬示範模式 (無硬體展示)", ChipType = "虛擬" }
-        };
+        var list = new List<PortInfo>();
 
         try
         {
             var rawPorts = SerialPort.GetPortNames().Distinct().OrderBy(p => p).ToList();
             var portDescriptions = QueryWmiPortDescriptions();
 
+            // 1. 先加入實體偵測到的硬體串口
             foreach (var p in rawPorts)
             {
                 var desc = portDescriptions.TryGetValue(p, out var d) ? d : "通用序列埠";
@@ -66,12 +63,15 @@ public class SerialManager
         }
         catch
         {
-            // WMI 失敗時仍可退回標準串口清單
             foreach (var p in SerialPort.GetPortNames().Distinct())
             {
                 list.Add(new PortInfo { PortName = p, Description = "標準序列埠", ChipType = "通用" });
             }
         }
+
+        // 2. 加入智慧自動探測與模擬示範模式
+        list.Add(new PortInfo { PortName = "AUTO", Description = "智慧自動探測鎖定 (自動掃描所有串口)", ChipType = "自動" });
+        list.Add(new PortInfo { PortName = "MOCK", Description = "離線模擬示範模式 (無硬體展示)", ChipType = "虛擬" });
 
         return list;
     }
@@ -224,16 +224,54 @@ public class SerialManager
                         if (CurrentTargetPort == "AUTO")
                         {
                             var ports = SerialPort.GetPortNames();
-                            foreach (var p in ports)
+                            if (ports.Length == 0)
                             {
-                                var testPort = ProbePort(p);
-                                if (testPort != null)
+                                OnStatusChanged?.Invoke("未偵測到任何 COM 序列埠 (請檢查 USB 轉接線)", false, false);
+                            }
+                            else
+                            {
+                                OnStatusChanged?.Invoke($"自動探測中: 正在掃描 ({string.Join(", ", ports)})...", false, false);
+                                SerialPort? foundPort = null;
+                                foreach (var p in ports)
                                 {
-                                    _serialPort = testPort;
-                                    ActivePortName = $"自動鎖定: {p}";
+                                    var testPort = ProbePort(p);
+                                    if (testPort != null)
+                                    {
+                                        foundPort = testPort;
+                                        ActivePortName = $"自動鎖定: {p}";
+                                        break;
+                                    }
+                                }
+
+                                if (foundPort != null)
+                                {
+                                    _serialPort = foundPort;
                                     IsConnected = true;
                                     OnStatusChanged?.Invoke(ActivePortName, true, false);
-                                    break;
+                                }
+                                else
+                                {
+                                    // 未收到回應時，若有偵測到單一串口或首選串口，直接嘗試開啟監聽
+                                    var fallbackPort = ports[0];
+                                    try
+                                    {
+                                        _serialPort = new SerialPort(fallbackPort, BaudRate, Parity.None, 8, StopBits.One)
+                                        {
+                                            ReadTimeout = ReadTimeoutMs,
+                                            WriteTimeout = 200,
+                                            DtrEnable = true,
+                                            RtsEnable = true
+                                        };
+                                        _serialPort.Open();
+                                        ActivePortName = $"已開啟: {fallbackPort} (等待逆變器數據回應...)";
+                                        IsConnected = true;
+                                        OnStatusChanged?.Invoke(ActivePortName, true, false);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        IsConnected = false;
+                                        OnStatusChanged?.Invoke($"開啟 {fallbackPort} 失敗: {ex.Message}", false, false);
+                                    }
                                 }
                             }
                         }
@@ -241,6 +279,7 @@ public class SerialManager
                         {
                             try
                             {
+                                OnStatusChanged?.Invoke($"正在連線至 {CurrentTargetPort}...", false, false);
                                 _serialPort = new SerialPort(CurrentTargetPort, BaudRate, Parity.None, 8, StopBits.One)
                                 {
                                     ReadTimeout = ReadTimeoutMs,
@@ -249,14 +288,14 @@ public class SerialManager
                                     RtsEnable = true
                                 };
                                 _serialPort.Open();
-                                ActivePortName = $"手動連接: {CurrentTargetPort}";
+                                ActivePortName = $"已連接: {CurrentTargetPort} (9600-8-N-1)";
                                 IsConnected = true;
                                 OnStatusChanged?.Invoke(ActivePortName, true, false);
                             }
-                            catch
+                            catch (Exception ex)
                             {
                                 IsConnected = false;
-                                OnStatusChanged?.Invoke($"連接 {CurrentTargetPort} 失敗，重試中...", false, false);
+                                OnStatusChanged?.Invoke($"連接 {CurrentTargetPort} 失敗: {ex.Message}", false, false);
                             }
                         }
                     }
@@ -341,8 +380,8 @@ public class SerialManager
         {
             var sp = new SerialPort(portName, BaudRate, Parity.None, 8, StopBits.One)
             {
-                ReadTimeout = 200,
-                WriteTimeout = 200,
+                ReadTimeout = 300,
+                WriteTimeout = 300,
                 DtrEnable = true,
                 RtsEnable = true
             };
@@ -350,7 +389,7 @@ public class SerialManager
             sp.DiscardInBuffer();
             var cmd = Encoding.ASCII.GetBytes("Q\r");
             sp.Write(cmd, 0, cmd.Length);
-            Thread.Sleep(60);
+            Thread.Sleep(120);
             var res = sp.ReadExisting();
             if (res.Contains('(') && res.Contains(')'))
             {
