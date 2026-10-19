@@ -28,7 +28,15 @@ local.properties
 *.bin
 *.hex
 *.class
+bin/
+**/bin/
+
+# Python temporary files
+__pycache__/
+*.pyc
+pc-laptop-hmi/logs/
 
 # OS files
 .DS_Store
 Thumbs.db
+

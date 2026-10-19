@@ -9,6 +9,7 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Build
 import android.util.Log
+import com.hoho.android.usbserial.driver.FtdiSerialDriver
 import com.hoho.android.usbserial.driver.UsbSerialDriver
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
@@ -30,6 +31,16 @@ class SerialPortManager(private val context: Context) {
 
     private val _deviceInfo = MutableStateFlow("未連接設備")
     val deviceInfo: StateFlow<String> = _deviceInfo.asStateFlow()
+
+    private fun getProber(): UsbSerialProber {
+        val customTable = UsbSerialProber.getDefaultProbeTable()
+        // 額外相容 MOXA 工業級串口轉接器 (相容 UPort 1110 與 光耦隔離型 UPort 1150I)
+        // MOXA Vendor ID: 0x110A
+        customTable.addProduct(0x110a, 0x1110, FtdiSerialDriver::class.java) // UPort 1110
+        customTable.addProduct(0x110a, 0x1150, FtdiSerialDriver::class.java) // UPort 1150 / 1150I
+        customTable.addProduct(0x110a, 0x1151, FtdiSerialDriver::class.java) // UPort 1151
+        return UsbSerialProber(customTable)
+    }
 
     private val usbReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -75,7 +86,7 @@ class SerialPortManager(private val context: Context) {
     }
 
     fun connectAvailableDevice(): Boolean {
-        val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager)
+        val availableDrivers = getProber().findAllDrivers(usbManager)
         if (availableDrivers.isEmpty()) {
             _deviceInfo.value = "未偵測到 USB-RS232 轉換器"
             return false
@@ -98,7 +109,7 @@ class SerialPortManager(private val context: Context) {
     }
 
     private fun openDevice(device: UsbDevice): Boolean {
-        val availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(usbManager)
+        val availableDrivers = getProber().findAllDrivers(usbManager)
         for (driver in availableDrivers) {
             if (driver.device.deviceId == device.deviceId) {
                 return openDriver(driver)

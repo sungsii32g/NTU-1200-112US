@@ -16,5 +16,11 @@
 
     <!-- Silicon Labs: CP2102, CP2104, CP2105 (Vendor ID 0x10C4 = 4292) -->
     <usb-device vendor-id="4292" />
-    <usb-device vendor-id="4292" product-id="60000" /> <!-- 0xEA60 CP2102 -->
+    <usb-device vendor-id="4292" product-id="60000" /> <!-- 0xEA60 CP2102/CP2104 -->
+
+    <!-- MOXA Technologies: UPort 1110, UPort 1150/1150I (Vendor ID 0x110A = 4362) -->
+    <usb-device vendor-id="4362" />
+    <usb-device vendor-id="4362" product-id="4368" /> <!-- 0x1110 UPort 1110 -->
+    <usb-device vendor-id="4362" product-id="4432" /> <!-- 0x1150 UPort 1150/1150I -->
 </resources>
+

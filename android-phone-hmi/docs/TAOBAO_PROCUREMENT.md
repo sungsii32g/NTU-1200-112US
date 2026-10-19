@@ -8,9 +8,9 @@
 
 | 序號 | 品項名稱 | 關鍵規格要求 | 適用機型 | 淘寶搜尋關鍵字與連結 |
 | :---: | :--- | :--- | :---: | :--- |
-| **1** | **工業級光耦隔離 USB 轉 RS-232 轉換器** | 指名 **FTDI FT232RL 晶片** + 內建 DC-DC 隔離電源與光耦晶片。抗 1500V 突波。 | 通用 | [淘寶搜尋：工業級 光耦隔離 USB轉RS232 FT232](https://world.taobao.com/search/search.htm?q=%E5%B7%A5%E4%B8%9A%E7%BA%A7%20%E5%85%89%E8%80%A6%E9%9A%94%E7%A6%BB%20USB%E8%BD%ACRS232%20FT232) |
-| **2** | **DB9 母頭轉 RJ11 (6P4C) 免焊接端子轉接頭** | DB9 9孔母座，帶螺絲旋鈕端子，方便手動鎖入 RJ11 Pin 2/3/4 線芯。 | 通用 | [淘寶搜尋：DB9母 轉 RJ11 轉接頭 免焊接](https://world.taobao.com/search/search.htm?q=DB9%E6%AF%8D%20%E8%BD%AC%20RJ11%20%E8%BD%AC%E6%8E%A5%E5%A4%B4) |
-| **3** | **MEAN WELL 原廠 RJ11-RS232 通訊線** (可選) | 明緯原廠出品之標準線材。 | 通用 | [淘寶搜尋：MEAN WELL RJ11-RS232 原廠通訊線](https://world.taobao.com/search/search.htm?q=MEAN%20WELL%20RJ11-RS232) |
+| **1** | **工業級光耦隔離 USB 轉 RS-232 轉換器** | 指名 **FTDI FT232RL / FT232RNL 晶片** + 內建電源隔離與數位隔離。抗突波/防雷。<br>※ 推薦：[微雪 Waveshare 工業級隔離 USB 轉 RS232/485](https://item.taobao.com/item.htm?id=765058755815)。⚠️ **注意**：市售 MOXA UPort 1110 無光耦隔離，請勿選購。 | 通用 | [淘寶搜尋：工業級 光耦隔離 USB轉RS232 FT232](https://world.taobao.com/search/search.htm?q=%E5%B7%A5%E4%B8%9A%E7%BA%A7%20%E5%85%89%E8%80%A6%E9%9A%94%E7%A6%BB%20USB%E8%BD%ACRS232%20FT232) |
+| **2** | **DB9 母頭 免焊接接線端子 (帶外殼)** | **必備配件！** DB9 9孔母座，背面帶螺絲端子。因轉換器 RS-232 端為 DB9 公針，需透過此端子將剪開剝皮的四芯電話線（Pin 2, 3, 5）鎖入對接。 | 通用 | [淘寶搜尋：DB9母 免焊接端子 帶外殼](https://world.taobao.com/search/search.htm?q=DB9%E6%AF%8D%20%E5%85%8D%E7%84%8A%E6%8E%A5%E7%AB%AF%E5%AD%90%20%E5%B8%A6%E5%A4%96%E5%A3%B3) |
+| **3** | **四芯電話線 6P4C (1~2米)** | 帶標準 6P4C 水晶頭，一頭插 NTU-1200，另一頭剪掉剝皮鎖入上述 DB9 母端子。 | 通用 | [淘寶搜尋：6P4C 四芯電話線](https://world.taobao.com/search/search.htm?q=6P4C%20%E5%9B%9B%E8%8A%AF%E7%94%B5%E8%AF%9D%E7%BA%BF) |
 | **4** | **Micro-USB OTG 轉接短線** | Micro-USB 公 轉 USB-A 母，純數據 Host 模式。 | 小米 2S | [淘寶搜尋：Micro USB OTG 轉接頭](https://world.taobao.com/search/search.htm?q=Micro%20USB%20OTG%20%E8%BD%AC%E6%8E%A5%E5%A4%B4) |
 | **5** | **LM2596S 可調式降壓模組 (帶數顯)** | 輸入 DC 4.5~40V，輸出可微調至 4.10V，輸出電流 2A~3A。 | 小米 2S | [淘寶搜尋：LM2596S DC-DC 降壓模組 帶數顯](https://world.taobao.com/search/search.htm?q=LM2596S%20DC-DC%20%E9%99%8D%E5%8E%8B%E6%A8%A1%E5%9D%97) |
 | **6** | **低 ESR 電解電容 2200uF / 10V** | 並聯於假電池座焊點，吸收脈衝電壓。 | 小米 2S | [淘寶搜尋：2200uF 10V 低阻抗 電解電容](https://world.taobao.com/search/search.htm?q=2200uF%2010V%20%E4%BD%8E%E9%98%BB%E6%8A%97%20%E7%94%B5%E8%A7%A3%E7%94%B5%E5%AE%B9) |

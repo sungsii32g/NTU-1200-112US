@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MEAN WELL NTU-1200-112US 工業級監控中心 (PC-Laptop HMI)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 頂部導航欄 -->
+    <header class="top-nav">
+      <div class="brand">
+        <div class="brand-logo">MW</div>
+        <div class="brand-text">
+          <h1>NTU-1200-112US</h1>
+          <span class="sub-brand">智慧正弦波逆變器 / UPS 監控中心</span>
+        </div>
+      </div>
+
+      <div class="port-bar">
+        <div class="port-select-wrapper">
+          <label for="portSelect">通訊埠：</label>
+          <select id="portSelect" class="styled-select">
+            <option value="AUTO">自動探測識別 (Auto-Detect)</option>
+            <option value="MOCK">離線展示模式 (Demo Mock)</option>
+          </select>
+        </div>
+        <button id="btnConnect" class="btn btn-primary" title="連線至指定端口">連線</button>
+        <button id="btnRefreshPorts" class="btn btn-secondary" title="重新掃描所有 USB 串口">⟳ 掃描</button>
+      </div>
+
+      <div class="system-status">
+        <div id="statusBadge" class="status-badge badge-offline">
+          <span class="pulse-dot"></span>
+          <span id="statusText">未連接</span>
+        </div>
+        <div class="latency-box">
+          <span class="latency-label">延遲</span>
+          <span id="latencyVal" class="latency-value">-- ms</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 告警橫幅 (低壓/過載/故障時自動彈出) -->
+    <div id="alertBanner" class="alert-banner hidden">
+      <span class="alert-icon">⚠️</span>
+      <span id="alertMessage" class="alert-msg">警報訊息</span>
+    </div>
+
+    <!-- 電力潮流動態流向卡片 -->
+    <section class="card power-flow-card">
+      <div class="card-header">
+        <h2>⚡ 電力潮流即時動態拓撲 (Power Flow)</h2>
+        <span id="powerPathBadge" class="badge-path">待機</span>
+      </div>
+      <div class="flow-diagram">
+        <!-- 節點 1：市電輸入 -->
+        <div class="flow-node" id="nodeGrid">
+          <div class="node-icon">🏢</div>
+          <div class="node-title">市電輸入 (Grid)</div>
+          <div class="node-value" id="flowGridVal">110.0 V</div>
+          <div class="node-sub" id="flowGridFreq">60.0 Hz</div>
+        </div>
+
+        <!-- 潮流路徑 1 (市電到旁路) -->
+        <div class="flow-path" id="pathGridToBypass">
+          <div class="path-line"></div>
+          <div class="path-label">市電直通</div>
+        </div>
+
+        <!-- 節點 2：中央轉換核心 (UPS/逆變器) -->
+        <div class="flow-core" id="coreInverter">
+          <div class="core-logo">NTU-1200</div>
+          <div class="core-status" id="coreStatusText">逆變運作中</div>
+          <div class="core-dcbus">DC Bus: <span id="flowDcBusVal">162.0 V</span></div>
+        </div>
+
+        <!-- 潮流路徑 2 (電池到逆變器) -->
+        <div class="flow-path-vertical" id="pathBatToInverter">
+          <div class="path-line-v"></div>
+          <div class="path-label-v">電池升壓</div>
+        </div>
+
+        <!-- 潮流路徑 3 (核心到負載) -->
+        <div class="flow-path" id="pathCoreToLoad">
+          <div class="path-line"></div>
+          <div class="path-label">AC 110V 輸出</div>
+        </div>
+
+        <!-- 節點 3：AC 輸出負載 -->
+        <div class="flow-node" id="nodeLoad">
+          <div class="node-icon">💡</div>
+          <div class="node-title">交流負載 (Load)</div>
+          <div class="node-value" id="flowLoadWatts">0 W</div>
+          <div class="node-sub" id="flowLoadPct">0 % 額定</div>
+        </div>
+
+        <!-- 節點 4：12V 電池組 (下方) -->
+        <div class="flow-node-bottom" id="nodeBat">
+          <div class="node-icon">🔋</div>
+          <div class="node-title">直流電池 (Battery)</div>
+          <div class="node-value" id="flowBatVolt">12.0 V</div>
+          <div class="node-sub" id="flowBatStatus">正常</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 主數據儀表量表網格 -->
+    <section class="meters-grid">
+      <!-- 卡片 1：電池電壓與狀態 -->
+      <div class="card meter-card">
+        <div class="card-title-row">
+          <h3>直流電池電壓</h3>
+          <span id="batStatusTag" class="status-pill pill-green">正常</span>
+        </div>
+        <div class="gauge-container">
+          <canvas id="gaugeBattery" width="220" height="130"></canvas>
+          <div class="gauge-center-text">
+            <span id="valBatVolt" class="gauge-val">--</span>
+            <span class="gauge-unit">Vdc</span>
+          </div>
+        </div>
+        <div class="meter-footer">
+          <span class="spec-label">關斷: 10.0V</span>
+          <span class="spec-label">預警: 11.0V</span>
+          <span class="spec-label">滿電: 12.8V~14.4V</span>
+        </div>
+      </div>
+
+      <!-- 卡片 2：交流輸出與負載瓦數 -->
+      <div class="card meter-card">
+        <div class="card-title-row">
+          <h3>交流輸出 & 負載率</h3>
+          <span id="loadStatusTag" class="status-pill pill-cyan">待機</span>
+        </div>
+        <div class="gauge-container">
+          <canvas id="gaugeLoad" width="220" height="130"></canvas>
+          <div class="gauge-center-text">
+            <span id="valLoadWatts" class="gauge-val">--</span>
+            <span class="gauge-unit">W</span>
+          </div>
+        </div>
+        <div class="meter-footer">
+          <span class="spec-label">輸出: <strong id="valAcVolt">-- V</strong></span>
+          <span class="spec-label">負載率: <strong id="valLoadPct">-- %</strong></span>
+          <span class="spec-label">額定: 1200W</span>
+        </div>
+      </div>
+
+      <!-- 卡片 3：機內溫度與冷卻 -->
+      <div class="card meter-card">
+        <div class="card-title-row">
+          <h3>機內散熱器溫度</h3>
+          <span id="tempStatusTag" class="status-pill pill-green">正常</span>
+        </div>
+        <div class="temp-display">
+          <div class="temp-big-val">
+            <span id="valTemp">--</span><span class="temp-unit">°C</span>
+          </div>
+          <div class="temp-bar-wrapper">
+            <div id="tempBarFill" class="temp-bar-fill" style="width: 30%;"></div>
+          </div>
+        </div>
+        <div class="meter-footer">
+          <span class="spec-label">常溫: 25~45°C</span>
+          <span class="spec-label">風扇啟動: ≥ 50°C</span>
+          <span class="spec-label">過溫保護: 75°C</span>
+        </div>
+      </div>
+
+      <!-- 卡片 4：設備硬體旗標 -->
+      <div class="card flags-card">
+        <div class="card-title-row">
+          <h3>硬體運作旗標</h3>
+          <span class="spec-sub">即時位元解析</span>
+        </div>
+        <div class="flags-grid">
+          <div class="flag-item" id="flagInverter">
+            <span class="flag-dot"></span>
+            <span class="flag-name">逆變輸出</span>
+          </div>
+          <div class="flag-item" id="flagBypass">
+            <span class="flag-dot"></span>
+            <span class="flag-name">UPS 旁路</span>
+          </div>
+          <div class="flag-item" id="flagGrid">
+            <span class="flag-dot"></span>
+            <span class="flag-name">市電正常</span>
+          </div>
+          <div class="flag-item" id="flagSaving">
+            <span class="flag-dot"></span>
+            <span class="flag-name">綠能節能</span>
+          </div>
+          <div class="flag-item" id="flagFault">
+            <span class="flag-dot"></span>
+            <span class="flag-name">設備異常</span>
+          </div>
+          <div class="flag-item" id="flagEeprom">
+            <span class="flag-dot"></span>
+            <span class="flag-name">EEPROM 狀態</span>
+          </div>
+        </div>
+        <div class="flags-extra">
+          <div>市電頻率: <strong id="valFreq">60.0 Hz</strong></div>
+          <div>高壓母線: <strong id="valDcBus">162.0 V</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 即時 60 秒趨勢折線圖 -->
+    <section class="card chart-card">
+      <div class="card-header">
+        <h2>📈 電池電壓 (V) 與 負載瓦數 (W) 60 秒即時趨勢</h2>
+        <div class="chart-legend">
+          <span class="legend-item"><span class="legend-color color-vbat"></span> 電池電壓 (V)</span>
+          <span class="legend-item"><span class="legend-color color-watts"></span> 負載輸出 (W)</span>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="trendChart" width="1000" height="240"></canvas>
+      </div>
+    </section>
+
+    <!-- 安全控制操作面板 -->
+    <section class="card control-card">
+      <div class="card-header">
+        <h2>🛠️ 逆變器遠端指令操作 (具備二次確認安全互鎖)</h2>
+        <span class="lock-tag">🔒 互鎖已保護</span>
+      </div>
+      <div class="control-actions">
+        <div class="action-box">
+          <div class="action-desc">
+            <strong>交流輸出電源 (AC Output)</strong>
+            <span>遠端開啟或切斷 110V 逆變輸出 (`C 1` / `C 0`)</span>
+          </div>
+          <div class="action-btns">
+            <button id="btnTurnOnAC" class="btn btn-success">啟動逆變輸出</button>
+            <button id="btnTurnOffAC" class="btn btn-danger">切斷逆變輸出</button>
+          </div>
+        </div>
+
+        <div class="action-box">
+          <div class="action-desc">
+            <strong>綠能節能模式 (Green Saving Mode)</strong>
+            <span>在負載小於 10W 時進入 1.5W 待機低功耗模式 (`W 1` / `W 0`)</span>
+          </div>
+          <div class="action-btns">
+            <button id="btnEnableSaving" class="btn btn-outline">啟用節能</button>
+            <button id="btnDisableSaving" class="btn btn-outline">停用節能</button>
+          </div>
+        </div>
+
+        <div class="action-box">
+          <div class="action-desc">
+            <strong>參數設定解鎖 (Unlock)</strong>
+            <span>發送 `pU` 解鎖指令以允許修改輸出配置</span>
+          </div>
+          <div class="action-btns">
+            <button id="btnUnlock" class="btn btn-outline">發送 pU 解鎖</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 原始封包監視器 (可折疊) -->
+    <details class="card terminal-card">
+      <summary class="terminal-summary">
+        <span>📟 即時通訊封包監視器 (ASCII Terminal)</span>
+        <span class="terminal-hint">點擊展開 / 收合</span>
+      </summary>
+      <div class="terminal-content">
+        <div class="terminal-line">最後發送 (TX): <code id="rawTxLine">Q\r</code></div>
+        <div class="terminal-line">最後接收 (RX): <code id="rawRxLine">尚未接收</code></div>
+        <div class="terminal-line">連線設備: <span id="rawDeviceInfo">--</span></div>
+      </div>
+    </details>
+  </div>
+
+  <!-- 安全確認 Modal 彈窗 -->
+  <div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 id="modalTitle">⚠️ 操作安全確認</h3>
+      <p id="modalBody">確定要切斷交流電源輸出嗎？後端負載將會瞬間斷電！</p>
+      <div class="modal-buttons">
+        <button id="modalBtnCancel" class="btn btn-secondary">取消</button>
+        <button id="modalBtnConfirm" class="btn btn-danger">確認執行</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
