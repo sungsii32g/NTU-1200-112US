@@ -1,72 +1,73 @@
-# MEAN WELL NTU-1200-112US 舊筆電 / 工控 PC 桌面與 Web 監控中心 (PC-Laptop HMI)
+# MEAN WELL NTU-1200-112US 筆電 / 工控 PC 桌面與 Web 監控中心 (PC-Laptop HMI)
 
-[![Python](https://img.shields.io/badge/Python-3.7%2B-blue.svg)](https://www.python.org/)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20RK3568-brightgreen.svg)]()
-[![Web](https://img.shields.io/badge/Web-Modern%20Industrial%20Dark-orange.svg)]()
+[![Visual Studio](https://img.shields.io/badge/IDE-Visual%20Studio%20Insiders%20%7C%20VS%20Code-purple.svg)](https://visualstudio.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET-8.0%20%2F%2010.0%20(WPF)-blue.svg)](https://dotnet.microsoft.com/)
+[![Windows](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011%20%7C%20IPC-brightgreen.svg)]()
+[![EXE](https://img.shields.io/badge/Binary-Native%20NTU1200__HMI.exe-orange.svg)]()
 
-專為 **舊筆電 (Windows 7/10/11 或 Linux)**、工控無風扇主機、以及 **RK3568 (AIO-3568J Linux 韌體)** 打造的輕量化、高效能逆變器監控中心。
-
-無需安裝龐大的肥大軟體或編譯環境，只要有 Python 3 與瀏覽器，點擊即可全功能運行！
+專為 **筆電 (Windows 10/11) 與工控 PC (IPC)** 打造的原生桌面高更新率監控中心。
+支援使用 **Visual Studio Insiders** 或 **Visual Studio Code** 開啟方案自行編譯除錯，亦可一鍵打包生成獨立運行的 **`NTU1200_HMI.exe`**。
 
 ---
 
 ## 🌟 核心特色功能
 
-1. **USB 串列埠智慧自動識別與握手 (Auto-Detection)**：
-   * 自動枚舉作業系統所有 COM 埠 (`serial.tools.list_ports`)。
-   * 自動辨識手邊現有硬體：
+1. **Visual Studio 系列原生支援 (.NET 8/10 WPF)**：
+   * 內附完整 **`NTU1200_HMI.sln`** 方案檔與 **`Ntu1200Hmi.csproj`** 專案檔。
+   * 可直接使用 **Visual Studio Insiders** 或 **Visual Studio Code** 開啟，支援完整的 IntelliSense、中斷點 (Breakpoints) 與單步除錯。
+   * 執行目錄下的 `build_exe.bat` 可秒級編譯出獨立運行的單一執行檔 `publish/NTU1200_HMI.exe`。
+2. **USB 串列埠智慧辨識與自動探測鎖定 (`AUTO`)**：
+   * 透過 WMI 與 Windows 驅動層自動識別已插入的 USB 配件：
      - **MOXA UPort 1110 / 1150** (VID: `0x110A`)
      - **UNITEK USB2.0 to RS232** (PL2303 / CH340 / FTDI)
      - **FTDI FT232BL / FT232RL / 隔離模組** (VID: `0x0403`)
      - **Silicon Labs CP2104 / CP2102** (VID: `0x10C4`)
      - **沁恆 CH340 / CH341** (VID: `0x1A86`)
-   * **自動探測模式 (`AUTO`)**：背景自動向各通訊埠發送 `Q\r`，收到符合格式的 `(...)` 遙測封包即自動鎖定連線，插上即用！
-2. **現代工業暗黑風 Web 監控介面 (Industrial Dark HMI)**：
-   * **電力潮流動態流向卡片 (Power Flow)**：動態虛線呈現市電 110V、UPS 旁路、電池逆變升壓與交流負載潮流。
-   * **Canvas 半圓弧儀表量表**：即時繪製電池電壓 (綠/橘/紅三色門檻)、交流輸出功率 (W) 與負載率 (%)。
-   * **60 秒滾動歷史趨勢圖**：雙 Y 軸即時追蹤電池電壓與負載瓦數變化。
-   * **硬體旗標解析器**：即時解析 19-Bit 狀態字串 (逆變器啟動、UPS 旁路、市電正常、節能模式、故障異常)。
-3. **音效警報與安全互鎖控制 (Safety Interlock)**：
-   * 當電池電壓低於 11.0V (預警) 或 10.0V (關斷) 時，自動跳出警報橫幅並發出 Web Audio 音效警報。
-   * 交流電源切斷 (`C 0`) 與啟動 (`C 1`) 具備二次確認 Modal 彈窗，避免誤觸導致伺服器斷電。
-4. **離線模擬示範模式 (Demo Mock Mode)**：
-   * 手邊沒有插逆變器時，在通訊埠下拉選單選擇「離線展示模式」，後端會自動模擬動態遙測數據，便於展示與驗證。
-5. **歷史紀錄自動存檔 (CSV Data Logging)**：
-   * 自動將即時數據寫入 `logs/ntu1200_telemetry_YYYY-MM-DD.csv`，方便日後以 Excel 分析電池放電曲線。
+   * **`AUTO` 探測模式**：背景自動向現有通訊埠輪詢 `Q\r`，收到符合格式的 `(...)` 遙測封包即自動鎖定連線，插上即連！
+3. **現代工業暗黑風桌面介面 (Modern Industrial Dark Theme)**：
+   * **電力潮流即時拓撲 (Power Flow)**：動態呈現市電 110V、UPS 旁路、電池逆變升壓與交流負載流向。
+   * **核心儀表網格**：即時顯示直流電池電壓 (10.0V 關斷/11.0V 預警/12.6V 良好)、交流負載瓦數 (W) 與負載率 (%)、散熱器溫度 (°C)。
+   * **60 秒滾動即時趨勢圖**：雙 Y 軸繪製電池電壓與負載瓦數曲線。
+   * **硬體旗標解析器**：即時解析逆變器運轉、UPS 旁路、市電狀態、節能模式、故障異常與 EEPROM 狀態。
+4. **安全互鎖操作 (Safety Interlock)**：
+   * 遠端切斷交流輸出 (`C 0`) 具備二次確認 MessageBox 防呆彈窗，避免誤觸斷電導致後端負載停機。
+   * 支援開啟逆變輸出 (`C 1`)、節能模式切換 (`W 1` / `W 0`) 與參數解鎖 (`pU`)。
+5. **長週期 CSV 自動存檔**：
+   * 自動在 `logs/` 目錄寫入每日遙測記錄 (`ntu1200_YYYY-MM-DD.csv`)。
+6. **雙架構兼容 (含 Web 網頁監控版)**：
+   * 同時保留輕量化 Python Web 伺服器 (`server.py` + `static/`)，若需透過手機或平板瀏覽器遠端查看亦可一鍵啟動。
 
 ---
 
-## 🚀 快速啟動指引
+## 🚀 開發與編譯指南
 
-### Windows (舊筆電 / PC)
-直接雙擊執行目錄下的批次檔：
+### 1. 使用 Visual Studio Insiders 開啟
+1. 直接雙擊開啟目錄下的方案檔：
+   👉 **`NTU1200_HMI.sln`**
+2. 在 Visual Studio 中選擇 `Release` 或 `Debug` 模式。
+3. 按下鍵盤 **`F5`** (啟動偵錯) 或 **`Ctrl + F5`** (啟動不偵錯) 即可直接運行。
+
+### 2. 使用 Visual Studio Code 開啟
+1. 在本目錄開啟終端機執行：
+   ```bash
+   code .
+   ```
+2. 安裝 Microsoft 官方之 **C# Dev Kit** 擴充套件。
+3. 按下 `F5` 即可直接進行斷點除錯。
+
+### 3. 一鍵生成獨立 EXE 執行檔
+直接雙擊執行目錄下的建置批次檔：
 ```cmd
-start_pc_hmi.bat
+build_exe.bat
 ```
-*該腳本會自動檢查 Python、自動安裝 `pyserial`、啟動伺服器並自動開啟瀏覽器前往 `http://localhost:8080`。*
-
-### Linux / RK3568 (AIO-3568J Ubuntu / Debian)
-賦予權限並執行：
-```bash
-chmod +x start_pc_hmi.sh
-./start_pc_hmi.sh
-```
-
-### 手動指令啟動 (跨平台通用)
-```bash
-# 1. 安裝唯一定義依賴
-pip install pyserial
-
-# 2. 啟動後端伺服器
-python server.py
-```
-啟動後打開任何瀏覽器（Chrome, Edge, Firefox）輸入：
-👉 **`http://localhost:8080`**
+編譯完成後，即可在 **`publish/`** 目錄取得：
+👉 **`publish\NTU1200_HMI.exe`**（約 600 KB，點擊即可獨立運行）。
 
 ---
 
 ## 🔌 現有硬體搭配推薦 (零元直接上線)
 
-針對手邊擁有的現有配備：
-* **舊筆電 USB** ──► **MOXA UPort 1110 (或 UNITEK)** ──► **MOXA TCC-82 (4 kV 光耦隔離器)** ──► **自製 DB9 轉 RJ11 線** ──► **NTU-1200 RJ11 埠**。
-* 舊筆電會自動辨識出 `COMx (MOXA UPort 1110)`，透過 TCC-82 提供 4 kV 頂規隔離防護，安全無虞！
+* **接線路徑**：
+  `筆電 USB ──► MOXA UPort 1110 (或 UNITEK) ──► MOXA TCC-82 (4 kV 光電隔離器) ──► 特製 DB9-RJ11 線 ──► NTU-1200 Remote Port`
+* **隔離防護**：
+  透過串接手邊現有的 **MOXA TCC-82**，提供高達 **4 kV RMS** 的實質光電隔離，徹底保護筆電主機板，無須等待外購模組！

@@ -15,16 +15,16 @@
 
 ## 🧭 四大實作模式與特性選型對比
 
-| 比較項目 | 【模式一】ESP32-S3 專用面板 | 【模式二】Android 手機/平板面板 | 【模式三】舊筆電 / 工控 PC 監控中心 | 【模式四】RK3568 (AIO-3568J) 工控主機 |
+| 比較項目 | 【模式一】ESP32-S3 專用面板 | 【模式二】Android 手機/平板面板 | 【模式三】筆電 / 工控 PC 桌面與 Web 監控中心 | 【模式四】RK3568 (AIO-3568J) 工控主機 |
 | :--- | :--- | :--- | :--- | :--- |
 | **子專案目錄** | [`esp32-s3-hmi/`](esp32-s3-hmi/) | [`android-phone-hmi/`](android-phone-hmi/) | [`pc-laptop-hmi/`](pc-laptop-hmi/) | 跑 [`android-phone-hmi/`](android-phone-hmi/) 或 [`pc-laptop-hmi/`](pc-laptop-hmi/) |
-| **適用設備** | ESP32-S3 開發板 (8MB PSRAM) | 小米 2S (假電池直供) / 紅米 Note 11 Pro | 淘汰之舊筆電 (Win7/10/11, Ubuntu) | AIO-3568J 高性能四核 A55 (1TOPS NPU) |
-| **顯示介面** | 3.5 吋 IPS 電容觸控 (480×320) | 4.3 吋 ~ 6.67 吋手機 AMOLED/IPS | 筆電本機螢幕 / 任何瀏覽器 Web HMI | HDMI / MIPI-DSI / LVDS 工業大螢幕 (10~21吋) |
-| **USB/串口相容** | UART2 (3.3V) 轉隔離 RS-232 | OTG 轉 FTDI/CH340/MOXA/CP2104 | **自動掃描鎖定現有串口** (MOXA/UNITEK/FTDI) | 板載 RS-232 埠或 USB Host 埠 |
+| **適用設備** | ESP32-S3 開發板 (8MB PSRAM) | 小米 2S (假電池直供) / 紅米 Note 11 Pro | 筆電 (Win10/11, Ubuntu) / 工控 PC (IPC) | AIO-3568J 高性能四核 A55 (1TOPS NPU) |
+| **顯示介面** | 3.5 吋 IPS 電容觸控 (480×320) | 4.3 吋 ~ 6.67 吋手機 AMOLED/IPS | 筆電螢幕 (原生 WPF 桌面視窗 / Web HMI) | HDMI / MIPI-DSI / LVDS 工業大螢幕 (10~21吋) |
+| **USB/串口相容** | UART2 (3.3V) 轉隔離 RS-232 | OTG 轉 FTDI/CH340/MOXA/CP2104 | **自動探測鎖定現有串口** (MOXA/UNITEK/FTDI) | 板載 RS-232 埠或 USB Host 埠 |
 | **供電方案** | 12V 轉 5V 直流降壓 | 外部 4.1V 假電池 / Type-C 邊充邊用 | 筆電自帶電池 + 變壓器 (不斷電備援) | 外部 DC 12V 工業供電 |
-| **軟體技術棧** | C++ / FreeRTOS / LVGL 8.3 | Kotlin / Android USB Host / Compose | **Python 3 / Web API / Canvas 儀表** | Android 11/12 或 Ubuntu / Docker |
-| **進階特色** | 超低待機功耗、開孔嵌入機櫃 | TTS 語音告警、Telegram 推播 | **CSV 長期日誌、免編譯雙擊即開** | 邊緣物聯網閘道器、多通訊口整合 |
-| **最佳應用場景** | 配電盤嵌入式、戶外電源箱 | 24小時無人值守常駐監控 | **工作台/實驗室臨時除錯、舊機再利用** | 工業自動化產線、儲能櫃綜合控制中心 |
+| **軟體技術棧** | C++ / FreeRTOS / LVGL 8.3 | Kotlin / Android USB Host / Compose | **C# .NET 8/10 WPF (VS Insiders / VS Code) 產出原生 EXE，亦附 Python Web 版** | Android 11/12 或 Ubuntu / Docker |
+| **進階特色** | 超低待機功耗、開孔嵌入機櫃 | TTS 語音告警、Telegram 推播 | **原生 EXE 雙擊即開、即時 60s 趨勢圖、CSV 長期日誌** | 邊緣物聯網閘道器、多通訊口整合 |
+| **最佳應用場景** | 配電盤嵌入式、戶外電源箱 | 24小時無人值守常駐監控 | **工作台/實驗室現場調試、筆電原生高效監控** | 工業自動化產線、儲能櫃綜合控制中心 |
 
 ---
 
@@ -33,18 +33,18 @@
 > [!TIP]
 > **好消息！運用手邊現有配備，今天即可「零元直接上線」，享受高達 4 kV RMS 的頂規工業隔離保護：**
 
-1. **現有 DB9 串列轉接器組合（今天即可直接接上真實逆變器！）**：
-   - **核心神級配件：MOXA TCC-82**（工業級 4-Channel 埠供電 RS-232 光電隔離器，**4 kV RMS 隔離耐壓**，15 kV ESD 防護）。
-   - **串接方案**：
-     `[舊筆電 / PC / 手機] ──► [MOXA UPort 1110 或 UNITEK USB-RS232] ──► [MOXA TCC-82 光電隔離器] ──► [特製 DB9-RJ11 線] ──► [NTU-1200 Remote Port]`
-   - **效益**：原本無隔離的 UPort 1110 或 UNITEK 經過 TCC-82 串接後，瞬間升級為具備 4 kV 光耦隔離的工業級通訊鏈路，徹底免疫大功率逆變器地迴路突波！
+1. **核心神級配件：MOXA TCC-82（工業級 4-Channel 埠供電 RS-232 光電隔離器，4 kV RMS 隔離耐壓）**：
+   - **全模式通用保險**：TCC-82 採標準 DB9 母進公出，**在全模式（模式一至模式四）中均可自由串接使用**！
+   - **通用串接原則**：除非直接使用一體成型的「微雪 Waveshare 工業級隔離 USB 轉 RS232/485」，否則任何非隔離轉接方案（**MOXA UPort 1110、UNITEK USB-RS232、MAX3232 模組**），**只要在輸出端串上 MOXA TCC-82，立刻全模式升級為具備 4 kV 光耦電氣隔離的最高防護等級**！
+   - **實體串接方案**：
+     `[主控：筆電 / PC / 手機 / RK3568 / ESP32] ──► [MOXA UPort 1110 / UNITEK / MAX3232] ──► [MOXA TCC-82 (4kV 光電隔離器)] ──► [特製 DB9-RJ11 線] ──► [NTU-1200 Remote Port]`
 2. **現有小型 USB 轉 TTL 模組（開發除錯最佳搭檔）**：
    - **FT232BL (3.3V)** & **CP2104 (3.3V)**：
      - 用於：PC 與手機模擬器閉環對接測試、邏輯分析儀波形抓取、RK3568 Bootloader 除錯。
      - ⚠️ **安全警告**：此兩款為 3.3V TTL 電平，**嚴禁直插 NTU-1200 之 RJ11 (EIA RS-232 ±12V)**！
 3. **現有 RK3568 開發板 (AIO-3568J)**：
    - 刷 Android 系統：可直接安裝本專案 `android-phone-hmi`，接上觸控螢幕作為旗艦 HMI。
-   - 刷 Linux 系統：可直接執行 `pc-laptop-hmi` 的 Python 伺服器，作為全功能工業閘道器。
+   - 刷 Linux 系統：可直接執行 `pc-laptop-hmi` 的服務，作為全功能工業閘道器。
 
 ---
 
@@ -64,26 +64,27 @@ NTU-1200-112US/
 │   │   └── src/main/res/xml/device_filter.xml # 支援 FTDI/CH340/MOXA/CP2104 自動喚醒
 │   └── docs/                         # 硬體直供改裝、淘寶採購指南、Golden Fixtures
 │
-├── pc-laptop-hmi/                    # 【模式三】舊筆電 / 工控 PC 桌面與 Web 監控中心 (新增!)
-│   ├── server.py                     # Python 3 後端 (USB 串口自動探測鎖定、500ms 輪詢、REST API)
-│   ├── static/                       # 現代工業暗黑風 Web 介面 (HTML5 / CSS3 / Vanilla JS)
-│   │   ├── index.html                # 電力潮流拓撲、Canvas 圓弧量表、60s 趨勢圖、安全確認彈窗
-│   │   ├── style.css                 # 玻璃擬態、霓虹動態潮流線、響應式佈局
-│   │   └── app.js                    # Web Audio 音效警報、狀態輪詢、即時繪圖
-│   ├── start_pc_hmi.bat              # Windows 舊筆電雙擊一鍵啟動腳本
-│   ├── start_pc_hmi.sh               # Linux / RK3568 一鍵啟動腳本
-│   ├── requirements.txt              # 依賴定義 (僅需 pyserial)
-│   └── README.md                     # 舊筆電應用完整操作指南
+├── pc-laptop-hmi/                    # 【模式三】筆電 / 工控 PC 桌面與 Web 監控中心 (VS / VS Code / EXE)
+│   ├── NTU1200_HMI.sln               # Visual Studio Insiders / VS 2022 方案檔
+│   ├── Ntu1200Hmi.csproj             # .NET 8/10 WPF 專案檔 (相容 Visual Studio Code)
+│   ├── MainWindow.xaml / .cs         # 現代工業暗黑風桌面 HMI (電力潮流、Gauges、60s 趨勢圖、安全確認)
+│   ├── ViewModels/ / Models/         # MVVM 數據模型、自動探測與 500ms 輪詢排程
+│   ├── Services/SerialManager.cs     # 智慧串口探測 (WMI 辨識 MOXA/UNITEK/FTDI/CP2104/CH340)
+│   ├── build_exe.bat                 # 一鍵編譯發布獨立單一 EXE 執行檔 (publish/NTU1200_HMI.exe)
+│   ├── publish/                      # 發布目錄 (內含編譯好的 NTU1200_HMI.exe，直接運行)
+│   ├── server.py / static/           # 同步隨附之輕量化 Web 網頁監控伺服器
+│   └── README.md                     # 筆電 / PC 應用完整操作與編譯指南
 │
 ├── docs/                             # 通用原廠技術文檔與特製品製作指引
 │   ├── Meanwell_NTU-1200-spec-cn.pdf # 明緯原廠規格書 (112US 額定1200W, 110V 60Hz)
 │   ├── NTS,NTU-C.pdf                 # 明緯原廠 NTS/NTU 遠端通訊使用手冊
 │   ├── NTU-1200-112US_HMI_Manual.md  # 完整工程指南
-│   ├── RJ11_RS232_Pinout_Diagram.md  # RJ11 對 DB9 接線圖解 + MOXA TCC-82 4kV 隔離專題
+│   ├── RJ11_RS232_Pinout_Diagram.md  # RJ11 對 DB9 接線圖解 + MOXA TCC-82 全模式 4kV 隔離專題
 │   └── protocol-source.md            # 通用協定來源與 Golden Fixtures
 │
 └── README.md                         # 本總導覽文件
 ```
+
 
 ---
 
