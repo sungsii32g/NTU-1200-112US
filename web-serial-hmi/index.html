@@ -9,6 +9,14 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="icon" type="image/png" href="logo.png">
+  <!-- PWA 核心描述與行動裝置原生獨立視窗體驗 (Standalone) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="NTU-1200 HMI">
+  <link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
   <div class="app-container">
@@ -29,6 +37,9 @@
         </button>
         <button id="btnToggleDemo" class="btn btn-secondary" title="切換離線模擬展示模式">
           🎮 模擬模式 (Demo)
+        </button>
+        <button id="btnInstallPwa" class="btn btn-outline hidden" title="安裝至桌面/手機主畫面獨立運行 (PWA)">
+          📲 安裝 App
         </button>
         <button id="btnDisconnect" class="btn btn-outline hidden" title="斷開串口連線">
           斷開

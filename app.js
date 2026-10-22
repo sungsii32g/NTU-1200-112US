@@ -1092,3 +1092,49 @@ if (btnExportCsv) {
 if (!hasWebSerial) {
   startDemoMode();
 }
+
+// ==========================================
+// PWA Service Worker 註冊與本機安裝管理
+// ==========================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg) => {
+        console.log('[PWA] ServiceWorker 註冊成功，範圍 (Scope):', reg.scope);
+      })
+      .catch((err) => {
+        console.warn('[PWA] ServiceWorker 註冊失敗:', err);
+      });
+  });
+}
+
+// 監聽 PWA 可安裝事件 (beforeinstallprompt)
+let deferredInstallPrompt = null;
+const btnInstallPwa = document.getElementById('btnInstallPwa');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if (btnInstallPwa) {
+    btnInstallPwa.classList.remove('hidden');
+  }
+});
+
+if (btnInstallPwa) {
+  btnInstallPwa.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    console.log(`[PWA] 使用者安裝選擇: ${outcome}`);
+    deferredInstallPrompt = null;
+    btnInstallPwa.classList.add('hidden');
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  console.log('[PWA] NTU-1200-112US 已成功安裝至本機！');
+  if (btnInstallPwa) {
+    btnInstallPwa.classList.add('hidden');
+  }
+});
+
