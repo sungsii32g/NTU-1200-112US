@@ -1,6 +1,6 @@
-# NTU-1200-112US 雲端免安裝 Web Serial 監控與工程 HMI
+# NTU-1200-112US 雲端免安裝 Web Serial 監控與工程 HMI (PWA)
 
-本專案提供完全基於瀏覽器標準技術（**HTML5 + CSS3 + Vanilla JavaScript + W3C Web Serial API**）開發的工業級逆變器控制台。**無須在電腦或手機上安裝任何後端服務、Python 或執行檔**，只需透過支援 Web Serial API 的瀏覽器（Google Chrome、Microsoft Edge、Opera 或 Android 版 Chrome）打開 GitHub Pages 網址，即可直接與 NTU-1200 逆變器進行雙向通訊控制！
+本專案提供完全基於現代 Web 標準技術（**HTML5 + CSS3 + Vanilla JavaScript + W3C Web Serial API + PWA**）開發的工業級逆變器控制台。**無須在電腦或手機上安裝任何後端服務、Python 或特定環境**，只需透過支援 Web Serial API 的瀏覽器（Google Chrome、Microsoft Edge、Opera 或 Android 版 Chrome）打開 GitHub Pages 網址，即可直接與 NTU-1200 逆變器進行雙向通訊控制！更可直接安裝至桌面/手機主畫面，享有離線秒開與獨立視窗體驗。
 
 ---
 
@@ -25,6 +25,12 @@
      - **設備硬體資訊讀取**：單擊發送 `I\r` 讀取型號、韌體版本與製造序號。
      - **19-Bit 狀態旗標解析面板**：即時位元解析（位元 0 ~ 18），包含過溫、短路、過載、DC 輸入異常警報。
      - **原始通訊指令終端機**：可手動輸入任何 RS-232 ASCII 指令並即時觀察 Hex/ASCII 回應。
+
+4. **標準 PWA (Progressive Web App) 規範完整支援**：
+   - **獨立視窗模式 (Standalone)**：支援從瀏覽器直接點擊「📲 安裝 App」至 Windows 桌面或 Android 主畫面，脫離瀏覽器網址列，享有如原生應用程式之無框沉浸操作體驗。
+   - **離線快取與秒開 (Service Worker)**：內建 `sw.js` 採用 Stale-While-Revalidate 與 Cache-First 混合快取策略，即使處於無網路現場亦可秒開並使用離線 Mock 模擬展示引擎。
+   - **雙規格自適應圖標**：內建 192x192 與 512x512 高解析度圖標（包含 any 與 maskable 規格），確保桌面與手機圖標完美契合。
+   - **安全上下文無縫相容**：全站運行於 HTTPS 或 Localhost 安全環境，100% 契合 W3C Web Serial API 串列埠安全規範。
 
 ---
 

@@ -62,3 +62,32 @@
 - 檔案 SHA256 一致性：`PASS`（三處鏡像哈希完全相同）。
 - 靜態標籤與語法檢查：`PASS`。
 
+
+---
+
+## [2026-11-04 16:35:00 +08:00] - PWA 架構確認與全平台導覽指引全面完善
+
+### 變更類型
+- `Documentation / Specification Alignment / PWA Clarification`
+
+### 變更目的
+確認本專案 Web Serial HMI 之 PWA（Progressive Web App）完整實作狀態，並同步升級全域總導覽手冊與子專案技術手冊，明確標註 PWA 離線快取（Service Worker）、獨立視窗運作（Standalone）與桌面/主畫面安裝引導規範。
+
+### 變更內容
+1. **升級全域技術導覽 (`README.md`)**：
+   - 頂部新增 `PWA Supported Offline` 認證徽章。
+   - 頂部重要公告區詳述 PWA 原生獨立應用體驗、Service Worker 離線秒開與獨立視窗模式。
+   - 更新五大模式選型表，明確標註模式五為 `GitHub Pages 免安裝 Web HMI (PWA)`，技術棧包含 `Web Serial + PWA`，進階特色增列 `PWA 離線快取與獨立安裝`。
+   - 更新目錄樹結構說明，詳述 `manifest.json` 與 `sw.js` 之職責。
+2. **升級模組專屬手冊 (`web-serial-hmi/README.md`)**：
+   - 標題與簡介加入 PWA 認證標記。
+   - 核心特色新增第 4 點「標準 PWA (Progressive Web App) 規範完整支援」，涵蓋獨立視窗模式、Service Worker 離線快取與秒開、自適應圖標與安全上下文。
+3. **建立 Git 安全回滾備份**：
+   - 建立標籤 `backup/NTU-1200-112US_20261104_163230` 並同步推送至遠端 `origin`。
+
+### 影響範圍
+- 專案說明文件與架構指南，零更動韌體、硬體與通訊控制程式碼。
+
+### 驗證狀態
+- Git 備份標籤：`backup/NTU-1200-112US_20261104_163230` 已成功建立。
+- 專案狀態確認：`PASS`（工作區乾淨無衝突，代碼與文件完全一致）。

@@ -9,14 +9,16 @@
 [![PC-Laptop](https://img.shields.io/badge/Mode%203-PC%20%2F%20Laptop%20WPF%20EXE-blue.svg)](pc-laptop-hmi/)
 [![RK3568](https://img.shields.io/badge/Mode%204-RK3568%20Edge%20IPC-purple.svg)](https://www.t-firefly.com/)
 [![Web-Serial](https://img.shields.io/badge/Mode%205-GitHub%20Pages%20Web%20HMI-red.svg)](https://sungsii32g.github.io/NTU-1200-112US/)
+[![PWA](https://img.shields.io/badge/PWA-Supported%20Offline-orange.svg)](https://sungsii32g.github.io/NTU-1200-112US/)
 [![Target](https://img.shields.io/badge/Hardware-MEAN%20WELL%20NTU--1200--112US-blue.svg)](https://www.meanwell.com/)
 [![License](https://img.shields.io/badge/License-MIT-brightgreen.svg)](LICENSE)
 
 專為 **明緯 (MEAN WELL) NTU-1200-112US 正弦波逆變器 / UPS 電源供應系統**（12Vdc 輸入, 110Vac 60Hz 輸出, 連續 1200W / 峰值 2000W）打造的工業級多架構監控與控制解決方案。
 
 > [!IMPORTANT]
-> ### 🌐 免安裝雲端 Web Serial 控制中心 (GitHub Pages 線上即開即控)
+> ### 🌐 免安裝雲端 Web Serial / PWA 控制中心 (GitHub Pages 線上即開即控)
 > - **線上直接運行網址**：👉 **[https://sungsii32g.github.io/NTU-1200-112US/](https://sungsii32g.github.io/NTU-1200-112US/)**
+> - **PWA 原生獨立應用體驗**：完整支援 Progressive Web App (PWA) 規範，內建 Service Worker 離線快取（支援無網秒開）與 Web App Manifest，點擊頂部「📲 安裝 App」即可一鍵新增至 Windows 桌面或 Android 主畫面獨立運行（無網址列 Standalone 模式）。
 > - **零驅動安裝**：支援 Google Chrome / Microsoft Edge 瀏覽器，透過 W3C Web Serial API 原生直通 USB 轉 RS-232 串口（支援 MOXA、FTDI、UNITEK、CH340、CP210x）。
 > - **若 GitHub 倉儲尚未開啟 Pages 服務，請依以下 3 步驟啟用（已做雙重相容）**：
 >   1. 進入本 GitHub 倉儲首頁，點選右上角 **`Settings` (設定)**。
@@ -30,15 +32,15 @@
 
 ## 🧭 五大實作模式與特性選型對比
 
-| 比較項目 | 【模式一】ESP32-S3 專用面板 | 【模式二】Android 手機/平板面板 | 【模式三】筆電 / 工控 PC 桌面中心 | 【模式四】RK3568 工控主機 | 【模式五】GitHub Pages 雲端免安裝 Web HMI |
+| 比較項目 | 【模式一】ESP32-S3 專用面板 | 【模式二】Android 手機/平板面板 | 【模式三】筆電 / 工控 PC 桌面中心 | 【模式四】RK3568 工控主機 | 【模式五】GitHub Pages 免安裝 Web HMI (PWA) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **子專案目錄** | [`esp32-s3-hmi/`](esp32-s3-hmi/) | [`android-phone-hmi/`](android-phone-hmi/) | [`pc-laptop-hmi/`](pc-laptop-hmi/) | 跑 [`android-phone-hmi/`](android-phone-hmi/) 或 [`pc-laptop-hmi/`](pc-laptop-hmi/) | [線上即開網址](https://sungsii32g.github.io/NTU-1200-112US/) / [`docs/`](docs/) |
 | **適用設備** | ESP32-S3 開發板 (8MB PSRAM) | 小米 2S (假電池直供) / 紅米 Note 11 Pro | 筆電 (Win10/11) / 工控 PC (IPC) | AIO-3568J 高性能四核 A55 | 任何能開瀏覽器的電腦或 Android 手機 |
-| **顯示介面** | 3.5 吋 IPS 電容觸控 (480×320) | 4.3 吋 ~ 6.67 吋手機螢幕 | 筆電原生 WPF 視窗 (高對比暗黑風格) | HDMI / LVDS 工業大螢幕 (10~21吋) | 瀏覽器網頁 (Chrome / Edge / Opera) |
+| **顯示介面** | 3.5 吋 IPS 電容觸控 (480×320) | 4.3 吋 ~ 6.67 吋手機螢幕 | 筆電原生 WPF 視窗 (高對比暗黑風格) | HDMI / LVDS 工業大螢幕 (10~21吋) | 瀏覽器網頁 / PWA 獨立視窗 (Chrome/Edge) |
 | **USB/串口相容** | UART2 (3.3V) 轉隔離 RS-232 | OTG 轉 FTDI/CH340/MOXA/CP2104 | **智慧自動探測鎖定** (MOXA/UNITEK/FTDI) | 板載 RS-232 埠或 USB Host 埠 | **W3C Web Serial API** 原生直連 |
-| **安裝門檻** | 需燒錄韌體 | 需安裝 APK | **免安裝，雙擊單一 EXE 即開** | 刷機部署系統 | **零安裝！打開 GitHub 網址即連** |
-| **軟體技術棧** | C++ / FreeRTOS / LVGL 8.3 | Kotlin / Android USB Host / Compose | **C# .NET WPF (VS Insiders / VS Code)** | Android 11/12 或 Linux / Docker | **HTML5 + CSS3 + Vanilla JS (Web Serial)** |
-| **進階特色** | 超低待機功耗、開孔嵌入機櫃 | TTS 語音告警、Telegram 推播 | **一鍵工程情境、自訂警戒門檻、CSV 匯出** | 邊緣物聯網閘道器、多通訊口整合 | **19-Bit 點擊排錯 SOP、音效警報、CSV 匯出** |
+| **安裝門檻** | 需燒錄韌體 | 需安裝 APK | **免安裝，雙擊單一 EXE 即開** | 刷機部署系統 | **零安裝！可點擊安裝為 PWA 原生捷徑** |
+| **軟體技術棧** | C++ / FreeRTOS / LVGL 8.3 | Kotlin / Android USB Host / Compose | **C# .NET WPF (VS Insiders / VS Code)** | Android 11/12 或 Linux / Docker | **HTML5 + CSS3 + Vanilla JS (Web Serial + PWA)** |
+| **進階特色** | 超低待機功耗、開孔嵌入機櫃 | TTS 語音告警、Telegram 推播 | **一鍵工程情境、自訂警戒門檻、CSV 匯出** | 邊緣物聯網閘道器、多通訊口整合 | **PWA 離線快取/獨立安裝、19-Bit 排錯、音效警報、CSV** |
 | **最佳應用場景** | 配電盤嵌入式、戶外電源箱 | 24小時無人值守常駐監控 | **工作台/實驗室調試、筆電高效監控** | 工業自動化產線、儲能櫃綜合控制中心 | **跨裝置應急即時檢修、手機/平板隨開隨測** |
 
 ---
@@ -107,11 +109,13 @@ NTU-1200-112US/
 │   ├── publish/                      # 發布目錄 (內含編譯好的獨立單一 NTU1200_HMI.exe，雙擊即開)
 │   └── README.md                     # 筆電 / PC 應用完整操作與編譯指南
 │
-├── web-serial-hmi/                   # 【模式五】GitHub Pages 雲端免安裝 Web Serial HMI (純前端)
-│   ├── index.html                    # 零安裝 Web 應用首頁 (雙模式介面、安全彈窗、動態圖表)
+├── web-serial-hmi/                   # 【模式五】GitHub Pages 雲端免安裝 Web Serial HMI (PWA 純前端)
+│   ├── index.html                    # 零安裝 Web 應用首頁 (雙模式介面、安全彈窗、動態圖表、PWA 安裝)
 │   ├── style.css                     # 工業級暗黑美學樣式表、響應式佈局
-│   ├── app.js                        # W3C Web Serial 通訊驅動、自動輪詢、展示模式引擎
-│   └── README.md                     # Web HMI 操作手冊與 GitHub Pages 設定教學
+│   ├── app.js                        # W3C Web Serial 通訊驅動、自動輪詢、展示模式引擎、PWA 生命週期註冊
+│   ├── manifest.json                 # Web App Manifest (standalone, 192/512 圖標)
+│   ├── sw.js                         # Service Worker 離線快取與 Stale-While-Revalidate 引擎
+│   └── README.md                     # Web HMI / PWA 操作手冊與 GitHub Pages 設定教學
 │
 ├── docs/                             # GitHub Pages 線上託管目錄 & 通用原廠技術文檔
 │   ├── index.html / style.css / app.js # GitHub Pages 直接託管之 Web HMI 實體檔案
