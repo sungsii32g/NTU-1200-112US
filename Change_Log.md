@@ -129,3 +129,35 @@
 - 多端檔案 SHA256 比對：`PASS`（鏡像完全一致）。
 - WPF 方案構建與發布：`PASS`（0 警告、0 錯誤）。
 - 舊品牌名稱搜尋檢查：`PASS`（0 殘留）。
+
+
+---
+
+## [2026-11-10 13:45:00 +08:00] - 建立專案「責任自負與限制」法律免責條款與聲明
+
+### 變更類型
+- `Governance / Legal Disclaimer / Risk Mitigation / Specification Update`
+
+### 變更目的
+為防範任何使用者因自行組裝、韌體燒錄、實體電氣接線或大功率逆變器操作不當所衍生之風險與爭議，於全專案建立嚴謹之「責任自負與限制聲明（Disclaimer & Limitation of Liability）」，確保開發者免於人身傷害、財物損失、設備原廠保固失效或衍生損害之任何民事賠償或連帶法律責任。
+
+### 變更內容
+1. **建立正式授權與免責文件 (`LICENSE`)**：
+   - 建立根目錄 [LICENSE](file:///d:/Work_Room/App_Development/NTU-1200-112US/LICENSE)，內含 MIT 開源授權條款，並正式附加完整「責任自負與限制聲明」法定條文。
+2. **全域技術導覽手冊整合 (`README.md`)**：
+   - 於專案首頁顯要位置增設 GitHub Alert `> [!CAUTION]` 警語區塊，明確公告責任自負與限制。
+   - 於文末開源授權與商標版權段落納入完整免責宣告與指向連結。
+3. **Web Serial / PWA 網頁端介面整合 (`index.html`)**：
+   - 同步更新根目錄、`docs/` 與 `web-serial-hmi/` 三處鏡像首頁之頁尾版權列，常駐顯示完整之責任自負與限制條款。
+4. **WPF PC 桌面控制中心整合 (`MainWindow.xaml` & `NTU1200_HMI.exe`)**：
+   - 在主畫面底部常駐新增高對比免責聲明區塊，並重新編譯發布獨立單一執行檔 `publish/NTU1200_HMI.exe`。
+5. **子模組操作指南同步更新**：
+   - 同步於 [web-serial-hmi/README.md](file:///d:/Work_Room/App_Development/NTU-1200-112US/web-serial-hmi/README.md) 與 [pc-laptop-hmi/README.md](file:///d:/Work_Room/App_Development/NTU-1200-112US/pc-laptop-hmi/README.md) 增設免責宣告條款。
+
+### 影響範圍
+- 專案各端介面之法律免責公告、授權條款與導覽文件，100% 保持硬體通訊協議與既有控制功能之向後相容性。
+
+### 驗證狀態
+- Git 備份標籤：`backup/NTU-1200-112US_20261110_134030`。
+- 多端鏡像 SHA256 比對：`PASS`（三處 index.html 完全一致）。
+- WPF 方案編譯發布：`PASS`（0 警告、0 錯誤）。
