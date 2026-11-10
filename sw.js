@@ -3,7 +3,7 @@
 // Cache-First / Stale-While-Revalidate 離線快取引擎
 // ========================================================
 
-const CACHE_NAME = 'ntu1200-pwa-v1.0.0';
+const CACHE_NAME = 'ntu1200-pwa-v1.0.1';
 
 const PRECACHE_ASSETS = [
   './',
@@ -12,6 +12,7 @@ const PRECACHE_ASSETS = [
   './app.js',
   './manifest.json',
   './logo.png',
+  './logo_600x600.png',
   './icon-192.png',
   './icon-512.png',
   './favicon.ico'

@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="logo.png" width="180" alt="柴閣巴物 SHIBA & PUG" style="border-radius: 50%; box-shadow: 0 8px 24px rgba(0,0,0,0.3);" />
+  <img src="logo.png" width="180" alt="SHIBUG WORKS" style="border-radius: 50%; box-shadow: 0 8px 24px rgba(0,0,0,0.3);" />
 </p>
 
-# 柴閣巴物 • MEAN WELL NTU-1200-112US 多架構工業級監控控制系統 (Multi-Platform HMI System)
+# SHIBUG WORKS • MEAN WELL NTU-1200-112US 多架構工業級監控控制系統 (Multi-Platform HMI System)
 
 [![PlatformIO](https://img.shields.io/badge/Mode%201-ESP32--S3%20%2B%20LVGL-orange.svg)](esp32-s3-hmi/)
 [![Android](https://img.shields.io/badge/Mode%202-Android%20Phone%20HMI-green.svg)](android-phone-hmi/)
@@ -180,6 +180,7 @@ NTU-1200-112US (RJ11)               標準 RS-232 (DB9)
 
 ---
 
-## 📄 開源授權
+## 📄 開源授權與商標版權
 
-本專案採 MIT 授權條款開源發布。
+- 本專案軟體架構採 MIT 授權條款開源發布。
+- **商標與設計宣告**：全案品牌 LOGO、視覺識別設計均由 **SHIBUG WORKS 版權所有 (All rights reserved)**。

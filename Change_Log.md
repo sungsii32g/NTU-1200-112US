@@ -91,3 +91,41 @@
 ### 驗證狀態
 - Git 備份標籤：`backup/NTU-1200-112US_20261104_163230` 已成功建立。
 - 專案狀態確認：`PASS`（工作區乾淨無衝突，代碼與文件完全一致）。
+
+
+---
+
+## [2026-11-10 13:40:00 +08:00] - 全專案導入 SHIBUG WORKS 全新 LOGO 設計與商標版權更新
+
+### 變更類型
+- `Branding / Asset Upgrade / Visual Identity / Copyright Alignment`
+
+### 變更目的
+全面採用全新高品質設計之 `logo_600x600.png` 標誌，全面置換全專案各平台之品牌 LOGO、PWA 雙規格圖標、網站 Favicon 與 Windows 桌面應用圖標，並統一將品牌與版權宣告確立為「SHIBUG WORKS 版權所有 (All rights reserved)」。
+
+### 變更內容
+1. **主視覺標誌與多解析度資產全面生成與鏡像同步**：
+   - 保留根目錄來源原始檔 [logo_600x600.png](file:///d:/Work_Room/App_Development/NTU-1200-112US/logo_600x600.png)。
+   - 同步更新根目錄、`docs/`、`web-serial-hmi/`、`pc-laptop-hmi/`、`esp32-s3-hmi/` 之 `logo.png`。
+   - 重新生成標準 PWA 192x192 與 512x512 高品質圖標（`icon-192.png`、`icon-512.png`），並鏡像至三端。
+   - 重新生成高相容多尺寸 Windows / Web 圖標檔（`favicon.ico`、`logo.ico`，內含 16/32/48/64/128/256 分辨率）。
+   - 清理刪除舊版冗餘大檔 `LOGO.jpg`。
+2. **PWA Service Worker 快取升級 (`sw.js`)**：
+   - 升級快取版號至 `ntu1200-pwa-v1.0.1`，預快取清單增列 `logo_600x600.png`，確保客戶端瀏覽器自動刷新快取，立即載入全新視覺。
+3. **品牌名稱與版權宣告全面統一**：
+   - 全面替換原「柴閣巴物 / SHIBA & PUG」文字，統一更新為「SHIBUG WORKS 版權所有」。
+   - 更新 [README.md](file:///d:/Work_Room/App_Development/NTU-1200-112US/README.md) 主標題、首圖 alt 標籤與頁尾開源商標版權宣告。
+   - 更新 [index.html](file:///d:/Work_Room/App_Development/NTU-1200-112US/index.html)（含 docs/ 及 web-serial-hmi/ 鏡像）頂部品牌名稱與底部頁尾版權列。
+   - 更新 [MainWindow.xaml](file:///d:/Work_Room/App_Development/NTU-1200-112US/pc-laptop-hmi/MainWindow.xaml) WPF PC 介面頂部品牌名稱。
+   - 更新 [web-serial-hmi/README.md](file:///d:/Work_Room/App_Development/NTU-1200-112US/web-serial-hmi/README.md) 品牌與商標宣告。
+4. **WPF PC 桌面應用重新發布**：
+   - 以 .NET 8 重新構建並發布獨立單一執行檔 [pc-laptop-hmi/publish/NTU1200_HMI.exe](file:///d:/Work_Room/App_Development/NTU-1200-112US/pc-laptop-hmi/publish/NTU1200_HMI.exe)，完整內嵌全新 `logo.ico` 與 `logo.png`。
+
+### 影響範圍
+- 品牌視覺、多端圖標與說明文件，不破壞任何既有通訊協定、RS-232 輪詢機制或控制邏輯。
+
+### 驗證狀態
+- Git 備份標籤：`backup/NTU-1200-112US_20261110_134000`。
+- 多端檔案 SHA256 比對：`PASS`（鏡像完全一致）。
+- WPF 方案構建與發布：`PASS`（0 警告、0 錯誤）。
+- 舊品牌名稱搜尋檢查：`PASS`（0 殘留）。
