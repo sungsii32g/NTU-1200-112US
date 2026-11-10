@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="logo.png" width="180" alt="SHIBUG WORKS" style="border-radius: 50%; box-shadow: 0 8px 24px rgba(0,0,0,0.3);" />
+  <img src="logo.png" width="180" alt="SHIBURG WORKS" style="border-radius: 50%; box-shadow: 0 8px 24px rgba(0,0,0,0.3);" />
 </p>
 
-# SHIBUG WORKS • MEAN WELL NTU-1200-112US 多架構工業級監控控制系統 (Multi-Platform HMI System)
+# SHIBURG WORKS • MEAN WELL NTU-1200-112US 多架構工業級監控控制系統 (Multi-Platform HMI System)
 
 [![PlatformIO](https://img.shields.io/badge/Mode%201-ESP32--S3%20%2B%20LVGL-orange.svg)](esp32-s3-hmi/)
 [![Android](https://img.shields.io/badge/Mode%202-Android%20Phone%20HMI-green.svg)](android-phone-hmi/)
@@ -187,5 +187,5 @@ NTU-1200-112US (RJ11)               標準 RS-232 (DB9)
 ## 📄 開源授權、商標版權與免責宣告
 
 - 本專案軟體架構採 [MIT 授權條款](LICENSE) 開源發布。
-- **商標與設計宣告**：全案品牌 LOGO、視覺識別設計均由 **SHIBUG WORKS 版權所有 (All rights reserved)**。
+- **商標與設計宣告**：全案品牌 LOGO、視覺識別設計均由 **SHIBURG WORKS 版權所有 (All rights reserved)**。
 - **責任自負與限制**：任何使用者透過本專案進行之組裝、燒錄及實體連線，均屬使用者基於自身判斷之自主行為。使用者須自行評估環境安全性並承擔全部風險。在法律允許之最大範圍內，專案開發者對於因使用或無法使用本專案所導致之任何人身傷害、財物損失、設備原廠保固失效或衍生損害，概不承擔任何民事賠償或連帶法律責任。

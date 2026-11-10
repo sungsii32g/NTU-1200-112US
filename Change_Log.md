@@ -161,3 +161,40 @@
 - Git 備份標籤：`backup/NTU-1200-112US_20261110_134030`。
 - 多端鏡像 SHA256 比對：`PASS`（三處 index.html 完全一致）。
 - WPF 方案編譯發布：`PASS`（0 警告、0 錯誤）。
+
+
+---
+
+## [2026-11-10 14:15:00 +08:00] - 全新 LOGO 資產正式確立、商標更名為 SHIBURG WORKS 並清理舊版資產
+
+### 變更類型
+- `Branding / Identity Alignment / Asset Refactoring / Remote Synchronization`
+
+### 變更目的
+全面替換為使用者提供之最新版高解析度主標誌 [logo.png](file:///d:/Work_Room/App_Development/NTU-1200-112US/logo.png)（882x863），將全專案品牌正式更名為「SHIBURG WORKS 版權所有 (All rights reserved)」，清理刪除過渡期舊檔 `logo_600x600.png`，並重新編譯發布全端鏡像資產。
+
+### 變更內容
+1. **主視覺標誌與多尺寸圖標全面重新渲染**：
+   - 以根目錄最新版 [logo.png](file:///d:/Work_Room/App_Development/NTU-1200-112US/logo.png)（1.29 MB）為單一事實基準，鏡像至 `docs/`、`web-serial-hmi/`、`pc-laptop-hmi/`、`esp32-s3-hmi/`。
+   - 採用雙三次高畫質等比例自適應縮放，生成標準 192x192 與 512x512 PWA 圖標（`icon-192.png`、`icon-512.png`）。
+   - 重新生成內含 16/32/48/64/128/256 分辨率之標準圖標檔（`favicon.ico`、`logo.ico`）。
+   - 正式刪除舊版過渡檔案 `logo_600x600.png`，確保 Git 倉庫乾淨無冗餘。
+2. **PWA Service Worker 快取版號升級 (`sw.js`)**：
+   - 快取版號升級為 `'ntu1200-pwa-v1.0.2'`，移除 `logo_600x600.png` 預快取項目，確保離線快取精準命中。
+3. **品牌名稱全面更名為 SHIBURG WORKS**：
+   - [LICENSE](file:///d:/Work_Room/App_Development/NTU-1200-112US/LICENSE)：更新版權所有人為 `SHIBURG WORKS`。
+   - [README.md](file:///d:/Work_Room/App_Development/NTU-1200-112US/README.md)：主標題、LOGO alt 屬性與頁尾商標宣告全面更名為 `SHIBURG WORKS`。
+   - [index.html](file:///d:/Work_Room/App_Development/NTU-1200-112US/index.html)（含 docs/ 及 web-serial-hmi/ 鏡像）：頂部品牌與頁尾版權列全面更名為 `SHIBURG WORKS`。
+   - [MainWindow.xaml](file:///d:/Work_Room/App_Development/NTU-1200-112US/pc-laptop-hmi/MainWindow.xaml)：WPF 桌面介面頂部品牌全面更名為 `SHIBURG WORKS`。
+   - [pc-laptop-hmi/README.md](file:///d:/Work_Room/App_Development/NTU-1200-112US/pc-laptop-hmi/README.md) 與 [web-serial-hmi/README.md](file:///d:/Work_Room/App_Development/NTU-1200-112US/web-serial-hmi/README.md)：全面更名為 `SHIBURG WORKS`。
+4. **WPF PC 桌面應用重新編譯發布**：
+   - 重新發布獨立單一執行檔 [pc-laptop-hmi/publish/NTU1200_HMI.exe](file:///d:/Work_Room/App_Development/NTU-1200-112US/pc-laptop-hmi/publish/NTU1200_HMI.exe)，內嵌全新圖標與 SHIBURG WORKS 介面宣告。
+
+### 影響範圍
+- 品牌視覺圖標、介面字串與授權文件，100% 保持硬體通訊協議相容性。
+
+### 驗證狀態
+- Git 備份標籤：`backup/NTU-1200-112US_20261110_141500`。
+- 多端檔案 SHA256 比對：`PASS`（鏡像完全一致）。
+- WPF 方案構建與發布：`PASS`（0 警告、0 錯誤）。
+- 舊名稱殘留檢查：`PASS`（全域已無 `SHIBUG` 殘留）。

@@ -245,7 +245,7 @@
                         </Border>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="MEAN WELL NTU-1200-112US" FontWeight="Bold" FontSize="16" />
-                            <TextBlock Text="SHIBUG WORKS • 正弦波逆變器 / UPS 工業控制中心 (版權所有)" FontSize="11" Foreground="{StaticResource TextDim}" />
+                            <TextBlock Text="SHIBURG WORKS • 正弦波逆變器 / UPS 工業控制中心 (版權所有)" FontSize="11" Foreground="{StaticResource TextDim}" />
                         </StackPanel>
                     </StackPanel>
 
