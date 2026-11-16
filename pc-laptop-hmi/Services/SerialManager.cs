@@ -23,6 +23,8 @@ public class SerialManager
     public event Action<string, bool, bool>? OnStatusChanged; // statusText, isConnected, isStale
     public event Action<string>? OnTxPacket;
     public event Action<string>? OnRxPacket;
+    public event Action<string>? OnDeviceInfoReceived;
+    public event Action<string>? OnConfigResponseReceived;
 
     public string CurrentTargetPort { get; private set; } = "AUTO";
     public string ActivePortName { get; private set; } = "未連接";
@@ -30,6 +32,7 @@ public class SerialManager
     public bool IsStale { get; private set; } = false;
 
     private DateTime _lastReceivedTime = DateTime.MinValue;
+    private DateTime _pausePollingUntil = DateTime.MinValue;
     private int _mockStep = 0;
     private readonly string _logDir;
     public string LogDirectory => _logDir;
@@ -173,6 +176,9 @@ public class SerialManager
         if (!command.EndsWith("\r")) command += "\r";
 
         OnTxPacket?.Invoke(command.TrimEnd('\r'));
+
+        // 為避免自訂指令 (如 I\r、C\r、V\r) 與背景 Q\r 輪詢碰撞，暫停背景輪詢 800ms
+        _pausePollingUntil = DateTime.Now.AddMilliseconds(800);
 
         if (CurrentTargetPort == "MOCK")
         {
@@ -321,12 +327,30 @@ public class SerialManager
                     continue;
                 }
 
+                // 2.5 若剛發送自訂指令 (如 I、C、V)，優先讀取該指令之回傳，不搶佔發送 Q
+                if (DateTime.Now < _pausePollingUntil)
+                {
+                    lock (_lock)
+                    {
+                        try
+                        {
+                            if (_serialPort.BytesToRead > 0)
+                            {
+                                var res = _serialPort.ReadTo("\r").Trim();
+                                HandleNonTelemetryResponse(res);
+                            }
+                        }
+                        catch { }
+                    }
+                    Thread.Sleep(50);
+                    continue;
+                }
+
                 // 3. 正常輪詢發送 Q\r
                 var sw = Stopwatch.StartNew();
                 string response;
                 lock (_lock)
                 {
-                    _serialPort.DiscardInBuffer();
                     var cmdBytes = Encoding.ASCII.GetBytes("Q\r");
                     _serialPort.Write(cmdBytes, 0, cmdBytes.Length);
                     OnTxPacket?.Invoke("Q");
@@ -336,26 +360,41 @@ public class SerialManager
                 sw.Stop();
 
                 var latency = sw.ElapsedMilliseconds;
-                var rawStr = "(" + response.TrimStart('(');
-                OnRxPacket?.Invoke(rawStr);
+                var cleanResponse = response.Trim();
 
-                var data = NtuTelemetry.Parse(rawStr, latency);
-                if (data != null)
+                if (cleanResponse.StartsWith("#"))
                 {
-                    _lastReceivedTime = DateTime.Now;
-                    IsStale = false;
-                    OnTelemetryReceived?.Invoke(data);
+                    // 設備資訊回傳 (I 指令)
+                    HandleNonTelemetryResponse(cleanResponse);
+                }
+                else if (cleanResponse.StartsWith("(") || cleanResponse.Contains(" "))
+                {
+                    var rawStr = cleanResponse.StartsWith("(") ? cleanResponse : "(" + cleanResponse.TrimStart('(');
+                    if (!rawStr.EndsWith(")")) rawStr += ")";
+                    OnRxPacket?.Invoke(rawStr);
 
-                    csvCounter++;
-                    if (csvCounter >= 60) // 每 30 秒自動寫入一筆 CSV
+                    var data = NtuTelemetry.Parse(rawStr, latency);
+                    if (data != null)
                     {
-                        csvCounter = 0;
-                        LogToCsv(data);
+                        _lastReceivedTime = DateTime.Now;
+                        IsStale = false;
+                        OnTelemetryReceived?.Invoke(data);
+
+                        csvCounter++;
+                        if (csvCounter >= 60) // 每 30 秒自動寫入一筆 CSV
+                        {
+                            csvCounter = 0;
+                            LogToCsv(data);
+                        }
+                    }
+                    else
+                    {
+                        CheckStaleState();
                     }
                 }
                 else
                 {
-                    CheckStaleState();
+                    HandleNonTelemetryResponse(cleanResponse);
                 }
 
                 Thread.Sleep(PollIntervalMs);
@@ -376,6 +415,20 @@ public class SerialManager
                 OnStatusChanged?.Invoke($"通訊中斷 ({ex.Message})，重試中...", false, false);
                 Thread.Sleep(1000);
             }
+        }
+    }
+
+    private void HandleNonTelemetryResponse(string res)
+    {
+        if (string.IsNullOrWhiteSpace(res)) return;
+        OnRxPacket?.Invoke(res);
+        if (res.StartsWith("#"))
+        {
+            OnDeviceInfoReceived?.Invoke(res);
+        }
+        else
+        {
+            OnConfigResponseReceived?.Invoke(res);
         }
     }
 

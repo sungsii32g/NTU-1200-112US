@@ -320,3 +320,41 @@
 ### 驗證狀態
 - Git 備份標籤：`backup/NTU-1200-112US_20261116_233500`。
 - 代碼靜態分析：`PASS`（DTR/RTS 供電、全斷行正規劃與 800ms 避碰機制閉環完整）。
+
+
+---
+
+## [2026-11-17 00:10:00 +08:00] - PC 桌面端指令避碰與設備資訊解析修復、接線鏡像診斷與環迴自檢法升級
+
+### 變更類型
+- `Bug Fix / PC WPF HMI Serial Protocol / Hardware Pinout & Diagnostic Verification`
+
+### 變更目的
+徹底解決實體硬體連線後網頁與原生桌面 EXE 均無法獲取遙測或設備資訊之問題。修復 PC WPF 桌面端 `SerialManager.cs` 與 `MainViewModel.cs` 在發送 `I\r` 時未暫停背景 `Q\r` 輪詢、緩衝區被 `DiscardInBuffer()` 沖刷、以及未解析展示 `#` 設備資訊封包之代碼缺陷；重新發布單一獨立可執行檔 `NTU1200_HMI.exe`；並於硬體接線手冊中追加「萬用電表 DC 直流電壓 -6V 終極判斷法」與「電腦端 3 秒短路環迴自檢 (Loopback Test)」，提供工程師零誤判之驗收標準。
+
+### 變更內容
+1. **PC 桌面端指令避碰機制 (`SerialManager.cs`)**：
+   - 新增 `_pausePollingUntil` 計時器，當發送自訂指令（如 `I\r`、`C\r`、`V\r`）時，自動暫停背景 `Q\r` 輪詢 800ms。
+   - 移除在讀取前無差別清除接收緩衝區 (`DiscardInBuffer()`) 之邏輯，避免沖刷剛收到的 `#...` 封包。
+   - 擴充封包辨識，若收到 `#` 開頭之設備資訊字串，觸發 `OnDeviceInfoReceived` 事件，不再強制包裝為 `(` 遙測格式。
+2. **PC 桌面端 ViewModel 綁定 (`MainViewModel.cs`)**：
+   - 訂閱 `OnDeviceInfoReceived` 事件，動態將實體逆變器回傳之型號韌體字串更新至 UI 設備資訊欄位。
+   - 點擊查詢時立即更新提示字串，若發送失敗提供明確例外訊息。
+3. **發布最新獨立 EXE**：
+   - 執行 `dotnet publish`，重新編譯並輸出全新單一檔案 `pc-laptop-hmi/publish/NTU1200_HMI.exe`。
+4. **硬體接線手冊與電氣診斷增強 (`docs/R11_RS232/README.md`, `docs/RJ11_RS232_Pinout_Diagram.md`)**：
+   - 加入 NTU-1200 機身開關 ON/OFF 與 2-Pin R.C. 插座開路檢查規範。
+   - 加入萬用電表 DC 直流電壓量測法：測量【5號藍線】與【2號橘線】之間電壓，若為 -6V 證實標準接法正確；若為 +6V 則一秒識別鏡像反向並給出倒置接法對應。
+   - 加入電腦與轉接器端 3 秒短路環迴自檢法 (Loopback Test: Pin 2 與 Pin 3 短接)，徹底分離軟體問題與硬體問題。
+
+### 影響範圍
+- `pc-laptop-hmi/Services/SerialManager.cs`
+- `pc-laptop-hmi/ViewModels/MainViewModel.cs`
+- `pc-laptop-hmi/publish/NTU1200_HMI.exe`
+- `docs/R11_RS232/README.md`
+- `docs/RJ11_RS232_Pinout_Diagram.md`
+
+### 驗證狀態
+- Git 備份標籤：`backup/NTU-1200-112US_20261117_000500`。
+- 編譯狀態：`dotnet publish` 通過（0 警告，0 錯誤）。
+- 代碼靜態分析：`PASS`。

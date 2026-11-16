@@ -253,6 +253,7 @@ public class MainViewModel : INotifyPropertyChanged
         _serialManager.OnStatusChanged += OnStatusChangedHandler;
         _serialManager.OnTxPacket += tx => Application.Current?.Dispatcher.Invoke(() => TxLine = tx);
         _serialManager.OnRxPacket += rx => Application.Current?.Dispatcher.Invoke(() => RxLine = rx);
+        _serialManager.OnDeviceInfoReceived += info => Application.Current?.Dispatcher.Invoke(() => DeviceInfoText = info);
 
         RefreshPorts();
     }
@@ -363,10 +364,15 @@ public class MainViewModel : INotifyPropertyChanged
 
     public void SendQueryDeviceInfo()
     {
+        DeviceInfoText = "正在發送 I 指令讀取設備資訊...";
         var res = _serialManager.SendCommand("I\r");
         if (SelectedPort?.PortName == "MOCK")
         {
             DeviceInfoText = "MEAN WELL NTU-1200-112US (FW: REV-1.02, 110Vac 60Hz 1200W)";
+        }
+        else if (!res.success)
+        {
+            DeviceInfoText = $"發送 I 失敗: {res.message}";
         }
     }
 
