@@ -473,10 +473,10 @@
                                 <Border Grid.Column="0" Background="#0F172A" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,0,8,0">
                                     <StackPanel>
                                         <TextBlock Text="交流電源輸出 (AC Output Control)" FontWeight="Bold" FontSize="13" Foreground="White" />
-                                        <TextBlock Text="遠端啟動逆變輸出 (`C 1`) 或緊急切斷 110V 輸出 (`C 0`)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,2,0,12" />
+                                        <TextBlock Text="遠端啟動逆變輸出 (C Remote ON: C0100...) 或緊急切斷輸出 (C Remote OFF: C1000...)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,2,0,12" />
                                         <StackPanel Orientation="Horizontal">
-                                            <Button Content="⚡ 開啟 110V 輸出 (C 1)" Click="BtnTurnOnAC_Click" Background="{StaticResource AccentGreen}" Style="{StaticResource IndustrialButton}" Margin="0,0,10,0" />
-                                            <Button Content="🛑 切斷 110V 輸出 (C 0)" Click="BtnTurnOffAC_Click" Background="{StaticResource AccentRed}" Style="{StaticResource IndustrialButton}" />
+                                            <Button Content="⚡ 開啟 110V 輸出 (C ON)" Click="BtnTurnOnAC_Click" Background="{StaticResource AccentGreen}" Style="{StaticResource IndustrialButton}" Margin="0,0,10,0" />
+                                            <Button Content="🛑 切斷 110V 輸出 (C OFF)" Click="BtnTurnOffAC_Click" Background="{StaticResource AccentRed}" Style="{StaticResource IndustrialButton}" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
@@ -485,7 +485,7 @@
                                 <Border Grid.Column="1" Background="#0F172A" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="14" Margin="4,0,4,0">
                                     <StackPanel>
                                         <TextBlock Text="綠能節能待機 (Power Saving Mode)" FontWeight="Bold" FontSize="13" Foreground="White" />
-                                        <TextBlock Text="負載小於 10W 時進入 1.5W 超低待機 (`W 1`/`W 0`)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,2,0,12" />
+                                        <TextBlock Text="負載小於 10W 節能待機 (硬體由 面板 DIP SW4 控制；軟體由 EEPROM 參數配置)" FontSize="11" Foreground="{StaticResource TextDim}" Margin="0,2,0,12" />
                                         <StackPanel Orientation="Horizontal">
                                             <Button Content="🌿 啟用節能 (W 1)" Click="BtnEnableSaving_Click" Background="#1E293B" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,0" />
                                             <Button Content="停用節能 (W 0)" Click="BtnDisableSaving_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" />
@@ -759,8 +759,8 @@
                                 <Button Content="[Q] 讀取即時遙測" Tag="Q\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
                                 <Button Content="[I] 讀取設備規格" Tag="I\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
                                 <Button Content="[pU] 解鎖參數防寫" Tag="pU\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource AccentAmber}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
-                                <Button Content="[C 1] 啟動逆變輸出" Tag="C 1\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource AccentGreen}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
-                                <Button Content="[C 0] 關閉逆變輸出" Tag="C 0\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource AccentRed}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="[C ON] 啟動逆變輸出" Tag="C010000000000000\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource AccentGreen}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="[C OFF] 關閉逆變輸出" Tag="C100000000000000\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource AccentRed}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
                                 <Button Content="[W 1] 啟用節能待機" Tag="W 1\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
                                 <Button Content="[W 0] 停用節能待機" Tag="W 0\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
                                 <Button Content="[V 110 060] 設為 110V 60Hz" Tag="V 110 060\r" Click="BtnQuickCmd_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />

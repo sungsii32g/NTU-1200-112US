@@ -71,6 +71,7 @@ typedef struct {
     float load_percent;         /* Load Ratio (0.0% ~ 100.0%+) */
     float load_analog;          /* Secondary/Analog Load measurement */
     float v_bat;                /* DC Battery Input Voltage (V) */
+    float battery_capacity;     /* Battery Capacity (0% ~ 100%) */
     float temp_c;               /* Internal Heat Sink Temp (°C) */
     float v_grid_ac;            /* Utility Mains Input Voltage (V) */
     float freq_hz;              /* Output Frequency (Hz) */

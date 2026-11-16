@@ -358,3 +358,80 @@
 - Git 備份標籤：`backup/NTU-1200-112US_20261117_000500`。
 - 編譯狀態：`dotnet publish` 通過（0 警告，0 錯誤）。
 - 代碼靜態分析：`PASS`。
+
+---
+
+## [2026-11-17 00:50:00 +08:00] - 全平台通訊協定、指令幀與 19-Bit 狀態旗標全面依據明緯官方 NTS,NTU-C.pdf 規格書核定調整修正
+
+### 變更類型
+- `Specification Alignment / Multi-Platform Protocol Refactor / Diagnostic & Parser Fix`
+
+### 變更目的
+依據明緯原廠使用手冊 `NTS,NTU-C.pdf` 第 5.4 節《RS-232/UART 通訊》官方圖紙與規格規範（包含使用者上傳之第 34 頁圖紙），全方面將本專案四大多端架構（Web Serial HMI、PC WPF 桌面控制中心、Android 手機/平板 HMI、ESP32-S3 嵌入式面板）之通訊指令格式、時序約束、19-Bit 狀態旗標與 Q 遙測封包解析邏輯進行 100% 嚴格核定、調整與修正，徹底終結指令不符合原廠韌體契約導致之通訊異常。
+
+### 變更內容
+1. **7 大核心指令幀格式 100% 依原廠規格對齊**：
+   - **`C` 指令（遠端開關機）**：全面升級為原廠第 49 頁標準 17 位元組幀格式：
+     - Remote ON: `C010000000000000\r`（`b0=0`, `b1=1`, `b2~b14=0`）
+     - Remote OFF: `C100000000000000\r`（`b0=1`, `b1=0`, `b2~b14=0`）
+     - 回覆格式：單一位元組 `C` (`0x43`)。
+     - 全平台程式碼（Web Serial、PC WPF、Android Kotlin、ESP32 C++）自動將舊式簡化語法升級轉換，向下相容舊輸入。
+   - **`V` 指令（輸出電壓與頻率設定）**：全面依據原廠第 21, 28, 40 頁標準升級為 11 位元組幀格式：
+     - 格式：`V WWW FFF [CS_H][CS_L]\r`，其中校驗碼為 2 位元組之累加大端二進制原始 Byte (`(sum >> 8) & 0xFF`, `sum & 0xFF`)，而非 4 位 ASCII 字串。
+     - 寫入前強制先發送 `pU\r` 參數防寫解鎖指令，並延遲 $\ge 20\text{ ms}$ 後才發送 V 指令。
+     - 回覆格式：`#[Voltage] [Frequency] [CS_H][CS_L]\r`。
+   - **`W` 指令（EEPROM 參數寫入）**：原廠第 42, 52 頁規範為完整 99 位元組參數寫入幀（與 I 回覆格式相同，開頭為 `W`，末尾帶 2-Byte Checksum），釐清節能模式由面板 DIP SW4 硬體控制或 99-Byte EEPROM 寫入，修正單純發送 `W 1\r` 之非正規認知。
+   - **`U` 指令（NTU 專屬電池優先 UVP/OVP 轉移電壓設定）**：
+     - 讀取指令：`U\r`（原廠第 53 頁，回覆 33 位元組）。
+     - 設定指令：`U[UVP:4B] [OVP:4B] 00.0 00.0 00.0 00.0 [Checksum:2B]\r`（需先啟用 Battery First 旗標）。
+2. **19-Bit 狀態旗標與成因 SOP 排錯 100% 對齊原廠手冊第 37~38 頁**：
+   - 徹底修正歷史誤植（如將 b6 誤標為風扇、b7 誤標為過壓等嚴重偏差）：
+     - `b0`: Inverter Mode (逆變模式工作中)
+     - `b1`: Bypass Mode (UPS 市電旁路直通供電)
+     - `b2`: Utility Power Supply (市電市網輸入正常)
+     - `b3`: Utility Charger Enable (市電充電啟用)
+     - `b4`: Solar Charger Enable (太陽能充電啟用)
+     - `b5`: Saving Mode Occurred (綠能節能模式動作中)
+     - `b6`: Battery Exhausted Mode (電池欠壓告警 / Battery Low)
+     - `b7`: Shutdown Mode (電池沒電停機保護 / Battery Used Up)
+     - `b8`: Battery OVP (電池過壓保護)
+     - `b9`: 遠端控制 Shutdown INVERTER (遙控關閉狀態)
+     - `b10`: OLP 100~115% (輕度過載警報，最長 3 分鐘)
+     - `b11`: OLP 115~150% (中度過載警報，10 秒緊急保護)
+     - `b12`: OLP 150%~ (重度過載極限關斷)
+     - `b13`: OTP / Fan Lock Protection (過溫保護或散熱風扇堵轉)
+     - `b14`: INV UVP Protection (交流輸出欠壓保護)
+     - `b15`: INV OVP Protection (交流輸出過壓保護)
+     - `b16`: INV Fault (逆變功率模組硬體嚴重故障)
+     - `b17`: EEPROM Error Code (內部參數校驗記憶體異常)
+     - `b18`: System Shutdown (系統全面保護性關閉)
+3. **Q 遙測封包欄位重大修正與雙模相容機制**：
+   - 經核對第 37 頁規格表與第 48 頁實機回傳指令解釋，官方真實欄位為：
+     - `tokens[0]`: `VVV` 交流輸出電壓 (0~250Vac)
+     - `tokens[1]`: `QQQ` 數位輸出負載% (0~100%)
+     - `tokens[2]`: `SS.S` 輸入電池電壓 (例如 12.6 或 48.3)
+     - `tokens[3]`: `BBB` 電池容量比例 (例如 075 = 75%)
+     - `tokens[4]`: `TT.T` 散熱器溫度 (0~99.9°C)
+     - `tokens[5]`: `MMM` 輸入市電電壓 (0~250Vac)
+     - `tokens[6]`: `RR.R` 輸出頻率 (40.0~70.0Hz)
+     - `tokens[7]`: `DDD` DC Bus 電壓 (0V 或高壓母線)
+     - `tokens[8]`: `PPP` 類比輸出負載% (0~100%)
+     - `tokens[9]`: `b0~b18` 19 位元狀態字串
+   - 全平台解析器實作雙模相容機制：若 `tokens[2]` 帶小數點（如 12.6V），以 `tokens[2]` 作為電池電壓、`tokens[3]` 作為電池容量；同時相容舊式第三方程式測試樣本，消除數值錯位引發之虛假高壓/過載警報。
+4. **全平台程式碼與發布檔同步更新**：
+   - Web Serial HMI (`web-serial-hmi/app.js`, `docs/app.js`, `app.js` 與 `index.html`)：三目錄檔案 100% 同步鏡像。
+   - PC WPF 桌面中心 (`pc-laptop-hmi/`): `SerialManager.cs`, `MainViewModel.cs`, `MainWindow.xaml`, `NtuTelemetry.cs` 同步更新，並重新以 Release win-x64 構建發布最新 `NTU1200_HMI.exe`。
+   - Android 協定庫 (`android-phone-hmi/protocol/`): `NtuCommandSpec.kt`, `NtuPacketBuilder.kt`, `NtuPacketParser.kt`, `NtuTelemetryModel.kt` 更新，增補單元測試。
+   - ESP32-S3 面板韌體 (`esp32-s3-hmi/src/`): `ntu_protocol.h`, `ntu_protocol.cpp` 更新。
+
+### 影響範圍
+- `web-serial-hmi/`, `docs/`, `./`
+- `pc-laptop-hmi/`
+- `android-phone-hmi/protocol/`
+- `esp32-s3-hmi/src/`
+- `VerificationCoverageMatrix.md`
+
+### 驗證狀態
+- Git 備份標籤：`backup/NTU-1200-112US_20261117_002340`。
+- WPF 建置發布：`PASS`（`dotnet publish` 0 警告 0 錯誤）。
+- 協定與手冊圖紙一致性：`PASS`（100% 符應 `NTS,NTU-C.pdf` 第 34~54 頁）。

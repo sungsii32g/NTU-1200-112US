@@ -260,27 +260,28 @@ public class MainViewModel : INotifyPropertyChanged
 
     private void InitializeDiagnosticBits()
     {
+        // 依據明緯原廠 NTS,NTU-C.pdf 規格書第 37~39 頁定義 100% 精準對齊
         var bitDefs = new (int idx, string name, string desc, string cause, string sop, bool isAlarm)[]
         {
-            (0, "逆變輸出運作", "逆變電路工作中 (Inverting Active)", "逆變電路已成功啟動並輸出交流電", "正常運行狀態", false),
-            (1, "UPS 市電旁路", "負載由市電 Bypass 供應中", "市電正常且旁路繼電器吸合", "正常旁路供電，電池處於浮充或待機", false),
-            (2, "市電交流正常", "市電交流輸入電壓正常在線", "偵測到 AC 110V 60Hz 市網", "正常市網輸入", false),
-            (3, "市電充電致能", "市網對電池充電迴路工作中", "交流輸入正在向 12V 電池補充電力", "充電中，請保持市電輸入穩定", false),
-            (4, "太陽能充電", "太陽能充電輸入運作中", "外接太陽能 MPPT 控制器正在供電", "太陽能綠能充電中", false),
-            (5, "綠能節能模式", "低負載自動休眠省電功能工作中", "已發送 W 1 且負載低於 10W 門檻", "休眠待機中，當後端負載大於 10W 時會自動在 1 秒內喚醒輸出", false),
-            (6, "散熱風扇運轉", "內部強制風冷散熱風扇啟動", "內部散熱片溫度大於 45°C 或負載大於 30%", "風扇啟動散熱中，請確認進出風口無異物阻塞", false),
-            (7, "電池高壓警報", "電池輸入電壓高於預警門檻 (15.5V)", "發電機或充電器充電電壓過高", "請調低充電器電壓或檢查充電控制器，避免損壞逆變器輸入電容", true),
-            (8, "電池低壓警報", "電池輸入電壓低於預警門檻 (11.0V)", "電池儲能不足或大電流放電壓降", "請盡快接上市電充電，或切換至綠能節能模式減少負載消耗", true),
-            (9, "輕度過載警報", "輸出負載超過 100% 額定容量 (1200W)", "後端電器消耗功率超過連續 1200W", "系統僅容許在 115% 運轉 3 分鐘，請關閉非必要電器", true),
-            (10, "重度湧浪過載", "輸出負載達到 115% 限制時間運轉", "感性負載（如馬達、壓縮機）啟動湧浪電流過大", "請檢修負載設備，系統將於 10 秒後自動進入保護關斷", true),
-            (11, "交流輸入異常", "市電輸入超出容許頻率或電壓波形", "台電市網停電、欠壓 (<85V) 或頻率漂移", "系統已自動切換至電池逆變供電，請檢查市電插頭", true),
-            (12, "高壓母線異常", "機內直流升壓高壓母線電壓偏離", "內部 DC-DC 升壓電路電壓不穩", "請重啟逆變器，若持續異常請聯絡原廠檢修", true),
-            (13, "內部過溫警報", "功率元件散熱片溫度接近上限 (>60°C)", "環境溫度過高或風扇積灰轉速下降", "請改善通風散熱條件，待溫度下降後警報將自動解除", true),
-            (14, "序列通訊握手", "RS-232 遠端通訊串列資料流同步中", "遠端遙測訊號正常通訊中", "通訊正常", false),
-            (15, "節能待機睡眠", "逆變器進入低功耗省電睡眠狀態", "綠能省電模式待機中 (消耗僅 1.5W)", "偵測到負載增加時將自動喚醒", false),
-            (16, "逆變故障警告", "硬體嚴重故障告警 (Fault Alarm)", "逆變輸出短路、MOSFET 損壞或嚴重過載", "【緊急】請立即發送 C 0 切斷輸出，排除後端短路後重新冷啟動", true),
-            (17, "EEPROM 錯誤", "內部儲存參數晶片讀寫錯誤", "內部校正參數記憶體資料校驗失敗", "請發送 pU 重新進行 V 110 060 參數寫入重設", true),
-            (18, "系統綜合警告", "警告旗標觸發，請檢查現場設備", "系統綜合安全聯鎖被觸發", "請於工程模式檢視各狀態燈號並依建議 SOP 排除", true)
+            (0, "逆變輸出運作", "逆變電路工作中 (INVERTER Mode)", "逆變電路已成功啟動並輸出交流電", "正常運行狀態。若需重設參數，請先確認後端負載安全。", false),
+            (1, "UPS 市電旁路", "負載由市電 Bypass 供應中 (Bypass Mode)", "市電正常且機內旁路繼電器吸合，交流輸出直通市電", "正常旁路供電，電池處於浮充或待機備援狀態。", false),
+            (2, "市電輸入正常", "市電輸入電壓正常在線 (Utility Power Supply)", "偵測到 AC 110V 60Hz 市網輸入", "正常市網輸入狀態，具備斷電切換 UPS 能力。", false),
+            (3, "市電充電致能", "市電充電迴路工作中 (Utility Charger Enable)", "交流市電輸入正在向 12V 直流電池補充電力", "充電進行中，請保持市電輸入穩定，避免中途強行斷電。", false),
+            (4, "太陽能充電", "太陽能充電輸入運作中 (Solar Charger Enable)", "外接太陽能 MPPT 充電控制器正在為電池供電", "太陽能綠能充電中，可搭配電池優先模式發揮最佳發電效益。", false),
+            (5, "綠能節能模式", "處於節能休眠模式 (Saving Mode Occurred)", "DIP SW4 啟用節能模式且負載低於 10W 門檻", "休眠待機中，當後端負載大於 10W 時會自動在 1 秒內喚醒輸出。", false),
+            (6, "電池欠壓告警", "電池電壓低於預警值 (Battery Exhausted Mode / Battery Low)", "電池電量即將耗盡或大電流放電造成壓降 (12V 型號 <11.0V)", "請盡速接上市電充電，或關閉非關鍵高耗電負載。", true),
+            (7, "電池耗盡停機", "電池沒電停機保護 (Shutdown Mode / Battery Used Up)", "電池電壓低於停機下限 (12V 型號 <10.0V)，逆變器切斷以保護電池壽命", "【停機保護】請立刻連接市電充電，充飽後方可重新啟動輸出。", true),
+            (8, "電池過壓保護", "電池輸入電壓過高保護 (Battery OVP)", "外接發電機或充電器充電電壓異常飆高 (12V 型號 >15.5V)", "請立即檢查並調低充電控制器輸出電壓，避免損壞逆變器輸入端濾波電容。", true),
+            (9, "遙控關閉狀態", "處於遠端通訊關閉狀態 (Remote Shutdown INVERTER)", "已由遠端通訊發送 C 關機指令 (C100000000000000) 或機身 R.C. 端口短路遙控關閉", "若需恢復輸出，請發送開機指令 C010000000000000 或將 R.C. 端口開路。", true),
+            (10, "輕度過載警報", "輸出負載達 100%~115% 額定容量 (OLP 100~115%)", "後端電器連續負載功率略微超過額定容量 1200W", "系統僅容許在 115% 運轉約 3 分鐘，請關閉次要設備以防超時保護關斷。", true),
+            (11, "中度過載警報", "輸出負載達 115%~150% 額定容量 (OLP 115~150%)", "後端負載功率顯著超過額定值，功率開關元件應力與溫升急速攀升", "系統將於 10 秒內緊急保護切斷輸出，請立即拔除非必要高耗能電器！", true),
+            (12, "重度過載關斷", "輸出負載大於 150% 極限關斷 (OLP 150%~)", "負載端發生嚴重短路或超大馬達瞬間啟動湧浪電流", "【緊急關斷】逆變電路已自動鎖定切斷輸出。請排除負載短路後重新冷啟動。", true),
+            (13, "過溫/風扇異常", "內部過溫保護 (OTP) 或散熱風扇堵轉 (Fan Lock Protection)", "功率元件散熱片溫度超過上限 (>60°C) 或機殼散熱風扇積灰受阻轉速異常", "請清除進出風口異物障礙，加強通風，待溫度降回正常範圍後將自動復原。", true),
+            (14, "輸出欠壓保護", "交流輸出電壓低於下限保護 (INV UVP Protection)", "交流輸出端電壓異常下跌 (<85Vac) 或輸出負載嚴重拉垮", "請檢查負載是否過重拉垮電壓，若無負載仍欠壓請聯絡原廠檢修。", true),
+            (15, "輸出過壓保護", "交流輸出電壓高於上限保護 (INV OVP Protection)", "交流反饋電路異常或逆變輸出電壓過高 (>135Vac)", "請立即切斷逆變輸出，重新冷啟動；若重啟仍過壓請送回明緯原廠檢修。", true),
+            (16, "逆變硬體故障", "逆變功率模組硬體嚴重故障告警 (INV Fault)", "逆變輸出短路、功率開關元件 (MOSFET) 損壞或驅動晶片硬體故障", "【硬體故障】請立即關閉機身總電源，切勿強行送電，聯絡原廠技術支援。", true),
+            (17, "EEPROM 錯誤", "機內儲存校正參數校驗錯誤 (EEPROM Error Code)", "內部校正參數記憶體資料校驗碼 (CRC) 失敗", "請發送 pU 參數解鎖，重新進行 V 輸出參數寫入重設。", true),
+            (18, "系統綜合關機", "系統安全保護停機狀態 (System Shutdown)", "多重保護聯鎖觸發導致系統進入全面保護性關閉", "請檢視上方各告警燈號，依個別 SOP 排除故障後重新啟動主機。", true)
         };
 
         DiagnosticBits.Clear();
@@ -329,7 +330,8 @@ public class MainViewModel : INotifyPropertyChanged
 
     public void SendTurnOnAC()
     {
-        var res = _serialManager.SendCommand("C 1\r");
+        // 依據 NTS,NTU-C.pdf 規格書第 39、49 頁標準 Remote ON 幀
+        var res = _serialManager.SendCommand("C010000000000000\r");
         MessageBox.Show(res.message, "操作結果", MessageBoxButton.OK, res.success ? MessageBoxImage.Information : MessageBoxImage.Warning);
     }
 
@@ -343,16 +345,19 @@ public class MainViewModel : INotifyPropertyChanged
 
         if (confirm == MessageBoxResult.Yes)
         {
-            var res = _serialManager.SendCommand("C 0\r");
+            // 依據 NTS,NTU-C.pdf 規格書第 39、49 頁標準 Remote OFF 幀
+            var res = _serialManager.SendCommand("C100000000000000\r");
             MessageBox.Show(res.message, "操作結果", MessageBoxButton.OK, res.success ? MessageBoxImage.Information : MessageBoxImage.Warning);
         }
     }
 
     public void SendSavingMode(bool enable)
     {
-        var cmd = enable ? "W 1\r" : "W 0\r";
-        var res = _serialManager.SendCommand(cmd);
-        MessageBox.Show(res.message, "操作結果", MessageBoxButton.OK, res.success ? MessageBoxImage.Information : MessageBoxImage.Warning);
+        MessageBox.Show(
+            $"依據明緯原廠 NTS,NTU-C.pdf 規格書第 43 頁備註：綠能節能模式 (Saving Mode) 係由機身面板 DIP SW4 開關硬體控制 (ON: 啟用, OFF: 關閉)。\n\n請直接將機身面板 DIP SW4 撥至 {(enable ? "ON (啟用節能待機)" : "OFF (關閉節能待機)")}。",
+            "節能模式操作指引",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
     }
 
     public void SendUnlock()
@@ -378,10 +383,14 @@ public class MainViewModel : INotifyPropertyChanged
 
     public void SendConfigureVoltage(string voltage, string freq)
     {
-        // 先發送解鎖，再發送配置
+        // 依據 NTS,NTU-C.pdf 規格書第 35、40、50 頁規範：
+        // 1. 先發送 pU 解鎖
         _serialManager.SendCommand("pU\r");
-        Thread.Sleep(50);
-        var res = _serialManager.SendCommand($"V {voltage} {freq}\r");
+        // 2. 延遲 >= 20ms 後發送帶 2-Byte Checksum 的 V 指令封包
+        Thread.Sleep(60);
+        int.TryParse(voltage, out var v);
+        int.TryParse(freq, out var f);
+        var res = _serialManager.SendVoltageConfig(v, f);
         MessageBox.Show($"輸出配置 ({voltage}V / {freq}Hz): {res.message}", "工程配置結果", MessageBoxButton.OK, res.success ? MessageBoxImage.Information : MessageBoxImage.Warning);
     }
 

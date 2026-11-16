@@ -145,12 +145,12 @@ const diagModalCause = document.getElementById('diagModalCause');
 const diagModalSop = document.getElementById('diagModalSop');
 const diagModalBtnClose = document.getElementById('diagModalBtnClose');
 
-// 19 位元狀態與保護定義 (含成因與工業級現場排錯處置 SOP)
+// 19 位元狀態與保護定義 (依據明緯原廠 NTS,NTU-C.pdf 規格書第 37~39 頁定義 100% 精準對齊)
 const bitDefinitions = [
   {
     idx: 0,
     name: "逆變輸出運作",
-    desc: "逆變電路工作中 (Inverting Active)",
+    desc: "逆變電路工作中 (INVERTER Mode)",
     cause: "逆變電路已成功啟動並輸出交流電",
     sop: "正常運行狀態。若需重設參數，請先確認後端負載安全。",
     isAlarm: false
@@ -158,15 +158,15 @@ const bitDefinitions = [
   {
     idx: 1,
     name: "UPS 市電旁路",
-    desc: "負載由市電 Bypass 供應中",
-    cause: "市電正常且機內旁路繼電器吸合",
+    desc: "負載由市電 Bypass 供應中 (Bypass Mode)",
+    cause: "市電正常且機內旁路繼電器吸合，交流輸出直通市電",
     sop: "正常旁路供電，電池處於浮充或待機備援狀態。",
     isAlarm: false
   },
   {
     idx: 2,
-    name: "市電交流正常",
-    desc: "市電交流輸入電壓正常在線",
+    name: "市電輸入正常",
+    desc: "市電輸入電壓正常在線 (Utility Power Supply)",
     cause: "偵測到 AC 110V 60Hz 市網輸入",
     sop: "正常市網輸入狀態，具備斷電切換 UPS 能力。",
     isAlarm: false
@@ -174,129 +174,129 @@ const bitDefinitions = [
   {
     idx: 3,
     name: "市電充電致能",
-    desc: "市網對電池充電迴路工作中",
-    cause: "交流輸入正在向 12V 直流電池補充電力",
+    desc: "市電充電迴路工作中 (Utility Charger Enable)",
+    cause: "交流市電輸入正在向 12V 直流電池補充電力",
     sop: "充電進行中，請保持市電輸入穩定，避免中途強行斷電。",
     isAlarm: false
   },
   {
     idx: 4,
     name: "太陽能充電",
-    desc: "太陽能充電輸入運作中",
+    desc: "太陽能充電輸入運作中 (Solar Charger Enable)",
     cause: "外接太陽能 MPPT 充電控制器正在為電池供電",
-    sop: "太陽能綠能充電中，可搭配綠能模式發揮最佳發電效益。",
+    sop: "太陽能綠能充電中，可搭配電池優先模式發揮最佳發電效益。",
     isAlarm: false
   },
   {
     idx: 5,
     name: "綠能節能模式",
-    desc: "低負載自動休眠省電功能工作中",
-    cause: "已發送 W 1 且負載低於 10W 門檻",
+    desc: "處於節能休眠模式 (Saving Mode Occurred)",
+    cause: "DIP SW4 啟用節能模式且負載低於 10W 門檻",
     sop: "休眠待機中，當後端負載大於 10W 時會自動在 1 秒內喚醒輸出。",
     isAlarm: false
   },
   {
     idx: 6,
-    name: "散熱風扇運轉",
-    desc: "內部強制風冷散熱風扇啟動",
-    cause: "內部散熱片溫度大於 45°C 或負載大於 30%",
-    sop: "風扇散熱運轉中，請確認進出風口通暢無異物阻塞。",
-    isAlarm: false
+    name: "電池欠壓告警",
+    desc: "電池電壓低於預警值 (Battery Exhausted Mode / Battery Low)",
+    cause: "電池電量即將耗盡或大電流放電造成壓降 (12V 型號 <11.0V)",
+    sop: "請盡速接上市電充電，或關閉非關鍵高耗電負載。",
+    isAlarm: true
   },
   {
     idx: 7,
-    name: "電池高壓警報",
-    desc: "電池輸入電壓高於預警門檻 (15.5V)",
-    cause: "發電機或充電器充電電壓過高，超出 15.5V 限制",
-    sop: "請立即調低充電器電壓或檢查充電控制器，避免損壞逆變器輸入濾波電容。",
+    name: "電池耗盡停機",
+    desc: "電池沒電停機保護 (Shutdown Mode / Battery Used Up)",
+    cause: "電池電壓低於停機下限 (12V 型號 <10.0V)，逆變器切斷以保護電池壽命",
+    sop: "【停機保護】請立刻連接市電充電，充飽後方可重新啟動輸出。",
     isAlarm: true
   },
   {
     idx: 8,
-    name: "電池低壓警報",
-    desc: "電池輸入電壓低於預警門檻 (11.0V)",
-    cause: "電池儲能不足或大電流放電造成內阻壓降",
-    sop: "請盡快接上市電充電，或切換至綠能節能模式並關閉非關鍵負載。",
+    name: "電池過壓保護",
+    desc: "電池輸入電壓過高保護 (Battery OVP)",
+    cause: "外接發電機或充電器充電電壓異常飆高 (12V 型號 >15.5V)",
+    sop: "請立即檢查並調低充電控制器輸出電壓，避免損壞逆變器輸入端濾波電容。",
     isAlarm: true
   },
   {
     idx: 9,
-    name: "輕度過載警報",
-    desc: "輸出負載超過 100% 額定容量 (1200W)",
-    cause: "後端電器消耗功率超過連續 1200W",
-    sop: "系統僅容許在 115% 運轉 3 分鐘，請關閉非必要電器降低負載。",
+    name: "遙控關閉狀態",
+    desc: "處於遠端通訊關閉狀態 (Remote Shutdown INVERTER)",
+    cause: "已由遠端通訊發送 C 關機指令 (C100000000000000) 或機身 R.C. 端口短路遙控關閉",
+    sop: "若需恢復輸出，請發送開機指令 C010000000000000 或將 R.C. 端口開路。",
     isAlarm: true
   },
   {
     idx: 10,
-    name: "重度湧浪過載",
-    desc: "輸出負載達到 115% 限制時間運轉",
-    cause: "感性負載（如馬達、壓縮機）啟動湧浪電流過大",
-    sop: "請檢修負載設備，系統將於 10 秒後自動進入保護關斷。",
+    name: "輕度過載警報",
+    desc: "輸出負載達 100%~115% 額定容量 (OLP 100~115%)",
+    cause: "後端電器連續負載功率略微超過額定容量 1200W",
+    sop: "系統僅容許在 115% 運轉約 3 分鐘，請關閉次要設備以防超時保護關斷。",
     isAlarm: true
   },
   {
     idx: 11,
-    name: "交流輸入異常",
-    desc: "市電輸入超出容許頻率或電壓波形",
-    cause: "台電市網停電、欠壓 (<85V) 或頻率漂移",
-    sop: "系統已自動切換至電池逆變供電，請檢查市電插頭或配電箱。",
+    name: "中度過載警報",
+    desc: "輸出負載達 115%~150% 額定容量 (OLP 115~150%)",
+    cause: "後端負載功率顯著超過額定值，功率開關元件應力與溫升急速攀升",
+    sop: "系統將於 10 秒內緊急保護切斷輸出，請立即拔除非必要高耗能電器！",
     isAlarm: true
   },
   {
     idx: 12,
-    name: "高壓母線異常",
-    desc: "機內直流升壓高壓母線電壓偏離",
-    cause: "內部 DC-DC 升壓電路電壓不穩或母線電容異常",
-    sop: "請重啟逆變器，若持續異常請聯絡原廠授權工程人員檢修。",
+    name: "重度過載關斷",
+    desc: "輸出負載大於 150% 極限關斷 (OLP 150%~)",
+    cause: "負載端發生嚴重短路或超大馬達瞬間啟動湧浪電流",
+    sop: "【緊急關斷】逆變電路已自動鎖定切斷輸出。請排除負載短路後重新冷啟動。",
     isAlarm: true
   },
   {
     idx: 13,
-    name: "內部過溫警報",
-    desc: "功率元件散熱片溫度接近上限 (>60°C)",
-    cause: "環境溫度過高或機殼風扇積灰導致轉速下降",
-    sop: "請改善環境通風條件，清除風道灰塵，待溫度下降後警報將自動解除。",
+    name: "過溫/風扇異常",
+    desc: "內部過溫保護 (OTP) 或散熱風扇堵轉 (Fan Lock Protection)",
+    cause: "功率元件散熱片溫度超過上限 (>60°C) 或機殼散熱風扇積灰受阻轉速異常",
+    sop: "請清除進出風口異物障礙，加強通風，待溫度降回正常範圍後將自動復原。",
     isAlarm: true
   },
   {
     idx: 14,
-    name: "序列通訊握手",
-    desc: "RS-232 遠端通訊串列資料流同步中",
-    cause: "遠端遙測訊號與上位機正常同步交換封包中",
-    sop: "通訊鏈路正常良好，無須額外處置。",
-    isAlarm: false
+    name: "輸出欠壓保護",
+    desc: "交流輸出電壓低於下限保護 (INV UVP Protection)",
+    cause: "交流輸出端電壓異常下跌 (<85Vac) 或輸出負載嚴重拉垮",
+    sop: "請檢查負載是否過重拉垮電壓，若無負載仍欠壓請聯絡原廠檢修。",
+    isAlarm: true
   },
   {
     idx: 15,
-    name: "節能待機睡眠",
-    desc: "逆變器進入低功耗省電睡眠狀態",
-    cause: "綠能省電模式待機中 (消耗僅 1.5W)",
-    sop: "偵測到負載增加時將自動喚醒輸出，無須手動干預。",
-    isAlarm: false
+    name: "輸出過壓保護",
+    desc: "交流輸出電壓高於上限保護 (INV OVP Protection)",
+    cause: "交流反饋電路異常或逆變輸出電壓過高 (>135Vac)",
+    sop: "請立即切斷逆變輸出，重新冷啟動；若重啟仍過壓請送回明緯原廠檢修。",
+    isAlarm: true
   },
   {
     idx: 16,
-    name: "逆變故障警告",
-    desc: "硬體嚴重故障告警 (Fault Alarm)",
-    cause: "逆變輸出短路、功率開關元件 (MOSFET) 損壞或持續嚴重過載",
-    sop: "【緊急 SOP】請立即發送 C 0 切斷輸出，拔除負載確認線路無短路後冷重啟。",
+    name: "逆變硬體故障",
+    desc: "逆變功率模組硬體嚴重故障告警 (INV Fault)",
+    cause: "逆變輸出短路、功率開關元件 (MOSFET) 損壞或驅動晶片硬體故障",
+    sop: "【硬體故障】請立即關閉機身總電源，切勿強行送電，聯絡原廠技術支援。",
     isAlarm: true
   },
   {
     idx: 17,
     name: "EEPROM 錯誤",
-    desc: "內部儲存參數晶片讀寫錯誤",
+    desc: "機內儲存校正參數校驗錯誤 (EEPROM Error Code)",
     cause: "內部校正參數記憶體資料校驗碼 (CRC) 失敗",
-    sop: "請發送 pU 參數解鎖，重新進行 V 110 060 參數寫入重設。",
+    sop: "請發送 pU 參數解鎖，重新進行 V 輸出參數寫入重設。",
     isAlarm: true
   },
   {
     idx: 18,
-    name: "系統綜合警告",
-    desc: "警告旗標觸發，請檢查現場設備",
-    cause: "系統綜合安全聯鎖被觸發 (保護機制連鎖反饋)",
-    sop: "請於工程模式檢視各狀態燈號，逐項排除異常原因。",
+    name: "系統綜合關機",
+    desc: "系統安全保護停機狀態 (System Shutdown)",
+    cause: "多重保護聯鎖觸發導致系統進入全面保護性關閉",
+    sop: "請檢視上方各告警燈號，依個別 SOP 排除故障後重新啟動主機。",
     isAlarm: true
   }
 ];
@@ -467,7 +467,8 @@ function resetPollingTimer() {
       if (!isPolling || !writer) return;
       try {
         const tStart = performance.now();
-        await writer.write('Q\r');
+        const qBytes = new TextEncoder().encode('Q\r');
+        await writer.write(qBytes);
         rawTxLine.textContent = 'Q\\r';
         lastPacketTime = tStart;
 
@@ -502,13 +503,8 @@ function resetPollingTimer() {
 async function startSerialPolling() {
   isPolling = true;
   lastValidPacketTime = performance.now();
-  const textDecoder = new TextDecoderStream();
-  const readableStreamClosed = serialPort.readable.pipeTo(textDecoder.writable);
-  reader = textDecoder.readable.getReader();
-
-  const textEncoder = new TextEncoderStream();
-  const writableStreamClosed = textEncoder.readable.pipeTo(serialPort.writable);
-  writer = textEncoder.writable.getWriter();
+  reader = serialPort.readable.getReader();
+  writer = serialPort.writable.getWriter();
 
   // 接收封包背景循環
   readSerialLoop();
@@ -519,12 +515,13 @@ async function startSerialPolling() {
 
 async function readSerialLoop() {
   let buffer = '';
+  const latin1Decoder = new TextDecoder('latin1');
   try {
     while (isPolling) {
       const { value, done } = await reader.read();
       if (done) break;
       if (value) {
-        buffer += value;
+        buffer += latin1Decoder.decode(value);
         // 同時相容 \r, \n, \r\n 各種斷行字元
         let endIdx;
         while ((endIdx = buffer.search(/[\r\n]/)) !== -1) {
@@ -542,7 +539,7 @@ async function readSerialLoop() {
             parseAndRender(packet);
             setConnectionStatus('正常運作', true, false);
           } else {
-            // 所有非 Q 狀態字串 (如 I 指令回覆之設備型號版本) 均即時更新至設備資訊框
+            // 所有非 Q 狀態字串 (如 I 指令回覆之設備型號版本、V 指令回覆) 均即時更新至設備資訊框
             deviceInfoBox.textContent = packet;
           }
         }
@@ -579,16 +576,55 @@ function stopDemoMode() {
   if (!serialPort) setConnectionStatus('未連接', false, false);
 }
 
-// 發送指令封包
-async function sendCommand(cmdStr) {
-  if (!cmdStr.endsWith('\r')) cmdStr += '\r';
-  rawTxLine.textContent = cmdStr.replace('\r', '\\r');
+// 計算並建構 V 指令 (NTS,NTU-C.pdf 第 35, 40, 50 頁規範: 11 Bytes, 包含 2-Byte Checksum)
+function buildVCommandBytes(voltage, freq) {
+  const vStr = String(voltage).padStart(3, '0');
+  const fStr = String(freq).padStart(3, '0');
+  // 依原廠規格：0:V, 1~3:WWW, 4:SP, 5~7:FFF, 8~9:Checksum, 10:CR
+  const payloadStr = `V${vStr} ${fStr}`;
+  const buffer = new Uint8Array(11);
+  let sum = 0;
+  for (let i = 0; i < payloadStr.length; i++) {
+    const code = payloadStr.charCodeAt(i);
+    buffer[i] = code;
+    sum += code;
+  }
+  buffer[8] = (sum >> 8) & 0xFF; // Checksum High Byte
+  buffer[9] = sum & 0xFF;        // Checksum Low Byte
+  buffer[10] = 0x0D;             // CR
+  return { buffer, hexChecksum: sum.toString(16).toUpperCase().padStart(4, '0'), vStr, fStr };
+}
+
+// 發送指令封包 (支援字串與二進制 Uint8Array，自動轉換相容 C 開關機規範)
+async function sendCommand(cmdInput) {
+  let bytesToSend;
+  let displayStr = '';
+
+  if (typeof cmdInput === 'string') {
+    let cmdStr = cmdInput;
+    // NTS,NTU-C.pdf 規格相容性轉換:
+    // 將簡化格式 C 1 / C 0 自動升級為原廠 17 位元組完整標準幀
+    if (cmdStr.trim() === 'C 1') {
+      cmdStr = 'C010000000000000\r';
+    } else if (cmdStr.trim() === 'C 0') {
+      cmdStr = 'C100000000000000\r';
+    } else if (!cmdStr.endsWith('\r')) {
+      cmdStr += '\r';
+    }
+    displayStr = cmdStr.replace('\r', '\\r');
+    bytesToSend = new TextEncoder().encode(cmdStr);
+  } else if (cmdInput instanceof Uint8Array) {
+    bytesToSend = cmdInput;
+    displayStr = `[Raw Bytes len=${bytesToSend.length}]`;
+  }
+
+  rawTxLine.textContent = displayStr;
 
   if (isDemoMode) {
-    if (cmdStr.startsWith('I')) {
+    if (displayStr.startsWith('I')) {
       deviceInfoBox.textContent = 'MEAN WELL NTU-1200-112US (FW: REV-1.02, 110Vac 60Hz 1200W)';
     }
-    alert(`[模擬模式] 指令已成功模擬執行: ${cmdStr.trim()}`);
+    alert(`[模擬模式] 指令已成功模擬執行: ${displayStr.trim()}`);
     return;
   }
 
@@ -598,10 +634,24 @@ async function sendCommand(cmdStr) {
   }
 
   try {
-    await writer.write(cmdStr);
+    await writer.write(bytesToSend);
   } catch (err) {
     alert(`發送失敗: ${err.message}`);
   }
+}
+
+// 發送帶 2-Byte Checksum 的 V 指令 (NTS,NTU-C.pdf 標準)
+async function sendVoltageFrequencyConfig(voltage, freq) {
+  const { buffer, hexChecksum, vStr, fStr } = buildVCommandBytes(voltage, freq);
+  rawTxLine.textContent = `V${vStr} ${fStr} [CS:0x${hexChecksum}]\\r`;
+
+  // 1. 先送 pU 解鎖
+  await sendCommand('pU\r');
+
+  // 2. 依原廠規格等待 >= 20ms 後發送帶 Checksum 的 V 封包
+  setTimeout(async () => {
+    await sendCommand(buffer);
+  }, 60);
 }
 
 // 解析 49 位元組 ASCII 封包並刷新 UI
@@ -613,7 +663,22 @@ function parseAndRender(rawStr) {
   const acOut = parseFloat(tokens[0]) || 0;
   const loadPct = parseInt(tokens[1]) || 0;
   const loadWatts = Math.round(loadPct * 12.0);
-  const battVolt = parseFloat(tokens[3]) || 0;
+
+  // 依據明緯官方手冊第 5.4 節第 37/48 頁標準規格：
+  // tokens[0]: VVV 交流輸出電壓 (0~250Vac)
+  // tokens[1]: QQQ 數位輸出負載% (0~100%)
+  // tokens[2]: SS.S 輸入電池電壓 (例如 12.6 或 48.3)
+  // tokens[3]: BBB 電池容量比例 (例如 075 = 75%)
+  // tokens[8]: PPP 類比輸出負載%
+  // 雙模相容：若 tokens[2] 帶小數點則為標準電池電壓，否則回退相容舊格式
+  let battVolt = 0;
+  let battCapacity = 0;
+  if (tokens[2] && tokens[2].includes('.')) {
+    battVolt = parseFloat(tokens[2]) || 0;
+    battCapacity = parseInt(tokens[3]) || 0;
+  } else {
+    battVolt = parseFloat(tokens[3]) || 0;
+  }
   const temp = parseFloat(tokens[4]) || 0;
   const gridVolt = parseFloat(tokens[5]) || 0;
   const freq = parseFloat(tokens[6]) || 0;
@@ -907,21 +972,25 @@ modalBtnConfirm.addEventListener('click', () => {
 btnTurnOnAC.addEventListener('click', () => {
   showConfirm(
     '啟動逆變交流輸出',
-    '即將向逆變器發送指令開啟 110V 輸出電源 (`C 1`)。確定執行？',
-    () => sendCommand('C 1\r')
+    '即將向逆變器發送標準 17 位元組指令開啟 110V 輸出電源 (`C010000000000000`)。確定執行？',
+    () => sendCommand('C010000000000000\r')
   );
 });
 
 btnTurnOffAC.addEventListener('click', () => {
   showConfirm(
     '⚠️ 危險操作：切斷交流電源',
-    '即將向逆變器發送指令【切斷 110V 輸出】(`C 0`)！後端所有電器負載將瞬間斷電，確定切斷？',
-    () => sendCommand('C 0\r')
+    '即將向逆變器發送標準 17 位元組指令【切斷 110V 輸出】(`C100000000000000`)！後端所有電器負載將瞬間斷電，確定切斷？',
+    () => sendCommand('C100000000000000\r')
   );
 });
 
-btnEnableSaving.addEventListener('click', () => sendCommand('W 1\r'));
-btnDisableSaving.addEventListener('click', () => sendCommand('W 0\r'));
+btnEnableSaving.addEventListener('click', () => {
+  alert('依據明緯原廠 NTS,NTU-C.pdf 規格書第 43 頁備註：綠能節能模式 (Saving Mode) 係由機身 DIP SW4 硬體開關設定 (ON: 啟用節能, OFF: 關閉節能)。請直接將機身面板 DIP SW4 撥至 ON。');
+});
+btnDisableSaving.addEventListener('click', () => {
+  alert('依據明緯原廠 NTS,NTU-C.pdf 規格書第 43 頁備註：請直接將機身面板 DIP SW4 撥至 OFF 關閉節能休眠。');
+});
 btnUnlock.addEventListener('click', () => sendCommand('pU\r'));
 
 btnQueryInfo.addEventListener('click', async () => {
@@ -935,16 +1004,12 @@ btnQueryInfo.addEventListener('click', async () => {
   }, 800);
 });
 
-// 預設電壓頻率配置
+// 預設電壓頻率配置 (調用原廠 2-Byte Checksum V 指令)
 document.querySelectorAll('.btn-voltage').forEach(btn => {
   btn.addEventListener('click', async () => {
-    const v = btn.getAttribute('data-v');
-    const f = btn.getAttribute('data-f');
-    // 自動解鎖並配置
-    await sendCommand('pU\r');
-    setTimeout(() => {
-      sendCommand(`V ${v} ${f}\r`);
-    }, 60);
+    const v = parseInt(btn.getAttribute('data-v'));
+    const f = parseInt(btn.getAttribute('data-f'));
+    await sendVoltageFrequencyConfig(v, f);
   });
 });
 
@@ -955,12 +1020,9 @@ const selectFreq = document.getElementById('selectFreq');
 
 if (btnApplyCustomV && selectVoltage && selectFreq) {
   btnApplyCustomV.addEventListener('click', async () => {
-    const v = selectVoltage.value;
-    const f = selectFreq.value;
-    await sendCommand('pU\r');
-    setTimeout(() => {
-      sendCommand(`V ${v} ${f}\r`);
-    }, 60);
+    const v = parseInt(selectVoltage.value);
+    const f = parseInt(selectFreq.value);
+    await sendVoltageFrequencyConfig(v, f);
   });
 }
 
@@ -988,16 +1050,12 @@ txtRawCmd.addEventListener('keydown', (e) => {
 document.getElementById('cardScenarioStandard')?.addEventListener('click', async () => {
   showConfirm(
     '套用標準商用情境 (110V/60Hz)',
-    '系統將自動執行：解鎖 (pU) ➔ 設置 110V 60Hz ➔ 啟動輸出 (C 1) ➔ 關閉節能待機 (W 0)。確定執行？',
+    '系統將自動執行：解鎖 (pU) ➔ 設置 110V 60Hz (含 Checksum) ➔ 啟動輸出 (C010000000000000)。確定執行？',
     async () => {
-      await sendCommand('pU\r');
+      await sendVoltageFrequencyConfig(110, 60);
       setTimeout(async () => {
-        await sendCommand('V 110 060\r');
-        setTimeout(async () => {
-          await sendCommand('C 1\r');
-          setTimeout(() => sendCommand('W 0\r'), 80);
-        }, 80);
-      }, 80);
+        await sendCommand('C010000000000000\r');
+      }, 150);
     }
   );
 });
@@ -1005,16 +1063,12 @@ document.getElementById('cardScenarioStandard')?.addEventListener('click', async
 document.getElementById('cardScenarioGreen')?.addEventListener('click', async () => {
   showConfirm(
     '套用綠能省電模式 (UPS)',
-    '系統將自動執行：解鎖 (pU) ➔ 設置 110V 60Hz ➔ 啟動輸出 (C 1) ➔ 啟用節能休眠 (W 1)。確定執行？',
+    '系統將自動執行：解鎖 (pU) ➔ 設置 110V 60Hz ➔ 啟動輸出 (C010000000000000)。請將 DIP SW4 撥至 ON 啟用節能。確定執行？',
     async () => {
-      await sendCommand('pU\r');
+      await sendVoltageFrequencyConfig(110, 60);
       setTimeout(async () => {
-        await sendCommand('V 110 060\r');
-        setTimeout(async () => {
-          await sendCommand('C 1\r');
-          setTimeout(() => sendCommand('W 1\r'), 80);
-        }, 80);
-      }, 80);
+        await sendCommand('C010000000000000\r');
+      }, 150);
     }
   );
 });
@@ -1022,13 +1076,12 @@ document.getElementById('cardScenarioGreen')?.addEventListener('click', async ()
 document.getElementById('cardScenario120V')?.addEventListener('click', async () => {
   showConfirm(
     '套用北美大功率情境 (120V/60Hz)',
-    '系統將自動執行：解鎖 (pU) ➔ 設置 120V 60Hz ➔ 啟動輸出 (C 1)。確定執行？',
+    '系統將自動執行：解鎖 (pU) ➔ 設置 120V 60Hz (含 Checksum) ➔ 啟動輸出 (C010000000000000)。確定執行？',
     async () => {
-      await sendCommand('pU\r');
+      await sendVoltageFrequencyConfig(120, 60);
       setTimeout(async () => {
-        await sendCommand('V 120 060\r');
-        setTimeout(() => sendCommand('C 1\r'), 80);
-      }, 80);
+        await sendCommand('C010000000000000\r');
+      }, 150);
     }
   );
 });
@@ -1036,13 +1089,12 @@ document.getElementById('cardScenario120V')?.addEventListener('click', async () 
 document.getElementById('cardScenario100V')?.addEventListener('click', async () => {
   showConfirm(
     '套用日本東部精密情境 (100V/50Hz)',
-    '系統將自動執行：解鎖 (pU) ➔ 設置 100V 50Hz ➔ 啟動輸出 (C 1)。確定執行？',
+    '系統將自動執行：解鎖 (pU) ➔ 設置 100V 50Hz (含 Checksum) ➔ 啟動輸出 (C010000000000000)。確定執行？',
     async () => {
-      await sendCommand('pU\r');
+      await sendVoltageFrequencyConfig(100, 50);
       setTimeout(async () => {
-        await sendCommand('V 100 050\r');
-        setTimeout(() => sendCommand('C 1\r'), 80);
-      }, 80);
+        await sendCommand('C010000000000000\r');
+      }, 150);
     }
   );
 });

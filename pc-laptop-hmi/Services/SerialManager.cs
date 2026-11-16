@@ -173,7 +173,11 @@ public class SerialManager
 
     public (bool success, string message) SendCommand(string command)
     {
-        if (!command.EndsWith("\r")) command += "\r";
+        var trimmed = command.Trim();
+        // 依據 NTS,NTU-C.pdf 規格書第 39、49 頁規範，將簡化格式自動升級為 17 位元組標準幀
+        if (trimmed == "C 1") command = "C010000000000000\r";
+        else if (trimmed == "C 0") command = "C100000000000000\r";
+        else if (!command.EndsWith("\r")) command += "\r";
 
         OnTxPacket?.Invoke(command.TrimEnd('\r'));
 
@@ -195,6 +199,48 @@ public class SerialManager
                 var bytes = Encoding.ASCII.GetBytes(command);
                 _serialPort.Write(bytes, 0, bytes.Length);
                 return (true, $"成功發送: {command.Trim()}");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"發送失敗: {ex.Message}");
+            }
+        }
+    }
+
+    public (bool success, string message) SendVoltageConfig(int voltage, int freq)
+    {
+        // 依據 NTS,NTU-C.pdf 第 35, 40, 50 頁規範: 11 Bytes, 包含 2-Byte Checksum
+        // 格式: V WWW FFF [CS_H][CS_L]\r
+        var vStr = voltage.ToString("000");
+        var fStr = freq.ToString("000");
+        var payload = $"V{vStr} {fStr}";
+        var bytes = Encoding.ASCII.GetBytes(payload);
+        int sum = 0;
+        foreach (var b in bytes) sum += b;
+
+        var fullPacket = new byte[bytes.Length + 3];
+        Array.Copy(bytes, fullPacket, bytes.Length);
+        fullPacket[bytes.Length] = (byte)((sum >> 8) & 0xFF);     // Checksum High Byte
+        fullPacket[bytes.Length + 1] = (byte)(sum & 0xFF);        // Checksum Low Byte
+        fullPacket[bytes.Length + 2] = 0x0D;                      // CR
+
+        _pausePollingUntil = DateTime.Now.AddMilliseconds(800);
+        OnTxPacket?.Invoke($"V{vStr} {fStr} [CS:0x{sum:X4}]");
+
+        if (CurrentTargetPort == "MOCK")
+        {
+            return (true, $"[模擬模式] 輸出配置已設定: {voltage}V / {freq}Hz (Checksum: 0x{sum:X4})");
+        }
+
+        lock (_lock)
+        {
+            if (_serialPort == null || !_serialPort.IsOpen)
+                return (false, "串列埠尚未建立連線");
+
+            try
+            {
+                _serialPort.Write(fullPacket, 0, fullPacket.Length);
+                return (true, $"成功發送: V{vStr} {fStr} (Checksum: 0x{sum:X4})");
             }
             catch (Exception ex)
             {

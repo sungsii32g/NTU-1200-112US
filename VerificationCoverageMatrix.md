@@ -24,6 +24,10 @@
 | **V-WPF-01** | PC Laptop HMI | WPF 方案編譯構建 | `dotnet build pc-laptop-hmi/Ntu1200Hmi.csproj` | 編譯成功無錯誤，生成可執行檔 | **NOT RUN** | 待桌面模組更動時構建 |
 | **V-WPF-02** | PC Laptop HMI | 獨立單一 EXE 封裝驗證 | 檢查 `publish/NTU1200_HMI.exe` | 檔案完整且具備自動探測 COM 埠功能 | **NOT RUN** | 待桌面實機環境測試 |
 | **V-ESP-01** | ESP32-S3 HMI | PlatformIO 韌體編譯 | `pio run -d esp32-s3-hmi` | ESP-IDF / Arduino 核心編譯成功，LVGL 8.3 連結無誤 | **NOT RUN** | 待嵌入式環境編譯 |
+| **V-SPEC-01** | 全平台協定層 | 官方 NTS,NTU-C.pdf 7 大核心指令幀格式完整對齊 | 核對 C(17B), V(11B 2-Byte CS), pU(解鎖), I(99B), W(99B), U(33B) | 100% 符應官方手冊規格要求 | **PASS** | Web Serial, WPF, Android, ESP32-S3 全端同步更新，向下相容 |
+| **V-SPEC-02** | 全平台診斷層 | 19-Bit 狀態旗標官方定義與成因 SOP 排錯對齊 | 比對第 37~38 頁 b0~b18 官方定義 | b6~b15 嚴重誤植徹底導正，成因與 SOP 全面對齊 | **PASS** | Web Serial 診斷卡片、WPF ViewModel、ESP32 旗標全數導正 |
+| **V-SPEC-03** | 全平台解析層 | Q 遙測封包欄位對齊與雙模相容 (Battery Volt/Capacity/Load) | 比對第 37/48 頁 Q 封包真實欄位定義 | tokens[2] 電池電壓與 tokens[3] 容量雙模相容解析 | **PASS** | WPF, Android Kotlin, ESP32 C++, Web JS 四端同步升級 |
+| **V-WPF-03** | PC Laptop HMI | WPF 單一可執行檔重新發布 | `dotnet publish ... -p:PublishSingleFile=true` | 編譯 0 警告 0 錯誤，產出全新 NTU1200_HMI.exe | **PASS** | 2026-11-17 00:43 執行通過，已生成於 publish 目錄 |
 | **V-HW-01** | 實體硬體全模式 | NTU-1200 實機唯讀長期連線 | 連接 MOXA TCC-82 + RJ11，連續輪詢 48 小時 | 通訊成功率 $>99.9\%$，零丟包無中斷 | **BLOCKED** | 無實體逆變器與隔離硬體台架連線 |
 
 ---

@@ -6,6 +6,7 @@ public class NtuTelemetry
     public int LoadPercent { get; set; }
     public double LoadWatts { get; set; }
     public double BatteryVoltage { get; set; }
+    public int BatteryCapacityPercent { get; set; }
     public double Temperature { get; set; }
     public double GridInputVoltage { get; set; }
     public double OutputFrequency { get; set; }
@@ -38,11 +39,30 @@ public class NtuTelemetry
 
         try
         {
+            // 依據明緯官方 NTS/NTU 手冊第 5.4 節第 37/48 頁標準規格：
+            // tokens[0]: VVV 交流輸出電壓 (0~250Vac)
+            // tokens[1]: QQQ 數位輸出負載% (0~100%)
+            // tokens[2]: SS.S 輸入電池電壓 (例如 12.6 或 48.3)
+            // tokens[3]: BBB 電池容量比例 (例如 075 = 75%)
+            // 雙模相容：若 tokens[2] 帶小數點則為標準電池電壓，否則回退相容 tokens[3]
+            double batVal = 0.0;
+            int batCap = 0;
+            if (tokens[2].Contains('.') && double.TryParse(tokens[2], out var bv2))
+            {
+                batVal = bv2;
+                if (int.TryParse(tokens[3], out var cap)) batCap = cap;
+            }
+            else if (double.TryParse(tokens[3], out var bv3))
+            {
+                batVal = bv3;
+            }
+
             var model = new NtuTelemetry
             {
                 AcOutputVoltage = double.TryParse(tokens[0], out var ac) ? ac : 0.0,
                 LoadPercent = int.TryParse(tokens[1], out var lp) ? lp : 0,
-                BatteryVoltage = double.TryParse(tokens[3], out var bv) ? bv : 0.0,
+                BatteryVoltage = batVal,
+                BatteryCapacityPercent = batCap,
                 Temperature = double.TryParse(tokens[4], out var temp) ? temp : 0.0,
                 GridInputVoltage = double.TryParse(tokens[5], out var gv) ? gv : 0.0,
                 OutputFrequency = double.TryParse(tokens[6], out var freq) ? freq : 0.0,

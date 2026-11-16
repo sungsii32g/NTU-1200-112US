@@ -63,12 +63,15 @@ size_t NTU_BuildUnlockCmd(char *buffer, size_t max_len) {
 }
 
 size_t NTU_BuildOutputControlCmd(bool enable, char *buffer, size_t max_len) {
-    if (!buffer || max_len < 8) return 0;
-    /* Format: C <1/0>\r or C <1/0> <CS>\r */
-    char temp[16];
-    int len = snprintf(temp, sizeof(temp), "C %d ", enable ? 1 : 0);
-    uint8_t cs = NTU_CalculateChecksum(temp, len);
-    return snprintf(buffer, max_len, "%s%02X\r", temp, cs);
+    if (!buffer || max_len < 18) return 0;
+    /* 依據明緯官方手冊第 5.4 節第 49 頁標準 17 位元組幀格式：
+     * Remote ON:  "C010000000000000\r"
+     * Remote OFF: "C100000000000000\r" */
+    const char *cmd = enable ? "C010000000000000\r" : "C100000000000000\r";
+    size_t len = strlen(cmd);
+    if (len >= max_len) return 0;
+    memcpy(buffer, cmd, len + 1);
+    return len;
 }
 
 size_t NTU_BuildSavingModeCmd(bool enable, char *buffer, size_t max_len) {
@@ -80,12 +83,21 @@ size_t NTU_BuildSavingModeCmd(bool enable, char *buffer, size_t max_len) {
 }
 
 size_t NTU_BuildVoltageFreqCmd(uint16_t voltage, uint8_t freq, char *buffer, size_t max_len) {
-    if (!buffer || max_len < 24) return 0;
-    /* Format: V <WWW> <0FF> <CS>\r e.g. V 110 060 8B\r */
-    char temp[24];
-    int len = snprintf(temp, sizeof(temp), "V %03u %03u ", (unsigned int)voltage, (unsigned int)freq);
-    uint8_t cs = NTU_CalculateChecksum(temp, len);
-    return snprintf(buffer, max_len, "%s%02X\r", temp, cs);
+    if (!buffer || max_len < 12) return 0;
+    /* 依據明緯官方手冊第 5.4 節第 21, 28, 40 頁標準 11 位元組幀格式 (含 2-Byte Checksum)：
+     * Format: V WWW FFF [CS_H][CS_L]\r */
+    char payload[16];
+    int p_len = snprintf(payload, sizeof(payload), "V %03u %03u ", (unsigned int)voltage, (unsigned int)freq);
+    uint16_t sum = 0;
+    for (int i = 0; i < p_len; i++) {
+        sum += (uint8_t)payload[i];
+    }
+    memcpy(buffer, payload, p_len);
+    buffer[8] = (char)((sum >> 8) & 0xFF);
+    buffer[9] = (char)(sum & 0xFF);
+    buffer[10] = '\r';
+    buffer[11] = '\0';
+    return 11;
 }
 
 /* ============================================================================
@@ -148,14 +160,27 @@ bool NTU_ParseStatusResponse(const char *resp, size_t len, NTU_DeviceState_t *st
         state->est_watts = NTU_RATED_POWER_WATTS * (state->load_percent / 100.0f);
     }
 
-    // Token 2: load_analog
-    if (token_count > 2) {
-        state->load_analog = strtof(tokens[2], NULL);
+    // 依據明緯官方 NTS/NTU 手冊第 5.4 節第 37/48 頁標準：
+    // Token 0: VVV (交流輸出電壓)
+    // Token 1: QQQ (數位負載%)
+    // Token 2: SS.S (電池電壓)
+    // Token 3: BBB (電池容量%)
+    // Token 8: PPP (類比負載%)
+    // 雙模相容：若 Token 2 包含小數點則為標準電池電壓，否則回退相容舊格式
+    if (token_count > 3) {
+        if (strchr(tokens[2], '.') != NULL) {
+            state->v_bat = strtof(tokens[2], NULL);
+            state->battery_capacity = strtof(tokens[3], NULL);
+        } else {
+            state->v_bat = strtof(tokens[3], NULL);
+            state->load_analog = strtof(tokens[2], NULL);
+        }
+    } else if (token_count > 2) {
+        state->v_bat = strtof(tokens[2], NULL);
     }
 
-    // Token 3: v_bat (Battery Voltage)
-    if (token_count > 3) {
-        state->v_bat = strtof(tokens[3], NULL);
+    if (token_count > 8) {
+        state->load_analog = strtof(tokens[8], NULL);
     }
 
     // Token 4: temp_c (Heatsink Temperature)

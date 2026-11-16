@@ -25,6 +25,10 @@ object NtuPacketBuilder {
         return NtuCommandSpec.buildSavingModeCmd(enable).toByteArray(Charsets.US_ASCII)
     }
 
+    fun buildVoltageConfigPacket(voltage: Int, freq: Int): ByteArray {
+        return NtuCommandSpec.buildVoltageConfigCmdBytes(voltage, freq)
+    }
+
     /**
      * 計算校驗碼 (ASCII 字元累加低 8 位元 Hex 字串)
      */

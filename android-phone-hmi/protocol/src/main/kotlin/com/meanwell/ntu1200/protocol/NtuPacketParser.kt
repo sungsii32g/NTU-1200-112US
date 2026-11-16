@@ -1,13 +1,25 @@
 package com.meanwell.ntu1200.protocol
 
 /**
- * MEAN WELL NTU-1200-112US 49 位元組 ASCII 回應封包解析器
+ * MEAN WELL NTU-1200-112US ASCII 回應封包解析器
+ * 依據原廠手冊 5.4 節第 36~38 頁與第 48 頁標準規格核定
  */
 object NtuPacketParser {
 
     /**
      * 解析狀態查詢 'Q' 回應封包
-     * 範例格式：(110.0 035 035.0 012.6 038.5 110.0 060.0 162.0 000 1011000000000000000)
+     * 原廠標準範例：(230 025 48.3 075 20.0 000 50.0 000 023 1000000000000000000)
+     * 欄位依序：
+     * tokens[0]: VVV 交流輸出電壓 (0~250Vac)
+     * tokens[1]: QQQ 數位輸出負載% (0~100%)
+     * tokens[2]: SS.S 輸入電池電壓 (例如 12.6 或 48.3)
+     * tokens[3]: BBB 電池容量比例 (例如 075 = 75%)
+     * tokens[4]: TT.T 散熱器溫度 (0~99.9°C)
+     * tokens[5]: MMM 輸入市電電壓 (0~250Vac)
+     * tokens[6]: RR.R 輸出頻率 (40.0~70.0Hz)
+     * tokens[7]: DDD DC Bus 電壓 (0V 或高壓母線)
+     * tokens[8]: PPP 類比輸出負載% (0~100%)
+     * tokens[9]: b0~b18 19 位元二進制狀態字串
      */
     fun parseStatusResponse(rawPacket: String, latencyMs: Long = 0L, nowMs: Long = System.currentTimeMillis()): NtuTelemetryModel? {
         val trimmed = rawPacket.trim().replace("\r", "").replace("\n", "")
@@ -27,11 +39,23 @@ object NtuPacketParser {
             val acOut = tokens[0].toFloatOrNull()
             val loadPct = tokens[1].toIntOrNull()
             val loadWatts = if (loadPct != null) loadPct * (NtuCommandSpec.RATED_POWER_WATTS / 100.0f) else null
-            val battVolt = tokens[3].toFloatOrNull()
+            
+            // 雙模相容：若 tokens[2] 帶小數點則為標準電池電壓 SS.S，tokens[3] 為電池容量 BBB；否則兼容舊格式
+            val battVolt: Float?
+            val battCapacity: Int?
+            if (tokens[2].contains('.')) {
+                battVolt = tokens[2].toFloatOrNull()
+                battCapacity = tokens[3].toIntOrNull()
+            } else {
+                battVolt = tokens[3].toFloatOrNull()
+                battCapacity = null
+            }
+
             val temp = tokens[4].toFloatOrNull()
             val gridVolt = tokens[5].toFloatOrNull()
             val freq = tokens[6].toFloatOrNull()
             val dcBus = tokens[7].toFloatOrNull()
+            val loadAnalog = tokens[8].toFloatOrNull()
 
             val bitString = tokens[9]
             val invActive = if (bitString.length > 0) bitString[0] == '1' else null
@@ -64,10 +88,12 @@ object NtuPacketParser {
                 loadPercent = Field(loadPct, "%", loadPct != null, nowMs),
                 loadWatts = Field(loadWatts, "W", loadWatts != null, nowMs),
                 batteryVoltage = Field(battVolt, "V", battVolt != null, nowMs),
+                batteryCapacityPercent = Field(battCapacity, "%", battCapacity != null, nowMs),
                 temperature = Field(temp, "°C", temp != null, nowMs),
                 gridInputVoltage = Field(gridVolt, "V", gridVolt != null, nowMs),
                 outputFrequency = Field(freq, "Hz", freq != null, nowMs),
                 dcBusVoltage = Field(dcBus, "V", dcBus != null, nowMs),
+                loadAnalogPercent = Field(loadAnalog, "%", loadAnalog != null, nowMs),
                 isInverterActive = Field(invActive, "", invActive != null, nowMs),
                 isUtilityBypass = Field(utBypass, "", utBypass != null, nowMs),
                 isGridNormal = Field(gridNorm, "", gridNorm != null, nowMs),

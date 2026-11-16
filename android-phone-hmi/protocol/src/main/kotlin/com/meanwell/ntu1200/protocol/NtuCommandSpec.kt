@@ -42,8 +42,35 @@ object NtuCommandSpec {
     const val CMD_QUERY_INFO = "I\r"
     const val CMD_PARAM_UNLOCK = "pU\r"
     
+    /**
+     * 原廠手冊 5.4 節第 49 頁標準 C 指令 17-byte 幀格式：
+     * Remote ON:  "C010000000000000\r"
+     * Remote OFF: "C100000000000000\r"
+     */
     fun buildOutputControlCmd(turnOn: Boolean): String {
-        return if (turnOn) "C 1\r" else "C 0\r"
+        return if (turnOn) "C010000000000000\r" else "C100000000000000\r"
+    }
+
+    /**
+     * 原廠手冊 5.4 節第 21/28 頁標準 V 指令 11-byte 幀格式 (含 2-Byte Checksum)：
+     * 格式：V WWW FFF [CS_H][CS_L]\r
+     * 注意：發送前必須先發送 pU\r 解鎖並等待 >= 20ms
+     */
+    fun buildVoltageConfigCmdBytes(voltage: Int, freq: Int): ByteArray {
+        val payload = String.format("V %03d %03d ", voltage, freq)
+        var sum = 0
+        for (ch in payload) {
+            sum += ch.code
+        }
+        val csHigh = ((sum shr 8) and 0xFF).toByte()
+        val csLow = (sum and 0xFF).toByte()
+        val bytes = ByteArray(payload.length + 3)
+        val payloadBytes = payload.toByteArray(Charsets.US_ASCII)
+        System.arraycopy(payloadBytes, 0, bytes, 0, payload.length)
+        bytes[payload.length] = csHigh
+        bytes[payload.length + 1] = csLow
+        bytes[payload.length + 2] = 0x0D // '\r'
+        return bytes
     }
 
     fun buildSavingModeCmd(enable: Boolean): String {
