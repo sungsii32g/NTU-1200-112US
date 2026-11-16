@@ -122,6 +122,9 @@ NTU-1200-112US/
 │   └── README.md                     # Web HMI / PWA 操作手冊與 GitHub Pages 設定教學
 │
 ├── docs/                             # GitHub Pages 線上託管目錄 & 通用原廠技術文檔
+│   ├── R11_RS232/                    # 現場實物 RJ11 對接 DB9 螺絲端子台實拍寫真與接線手冊
+│   │   ├── README.md                 # 實體照片圖解與線色直鎖對應表 (棕3/藍5/橘2/綠NC)
+│   │   └── *.jpg                     # 機身插座 1~6 標號、DB9 端子孔位、6P4C 色線高清實拍寫真
 │   ├── index.html / style.css / app.js # GitHub Pages 直接託管之 Web HMI 實體檔案
 │   ├── Meanwell_NTU-1200-spec-cn.pdf # 明緯原廠規格書 (112US 額定1200W, 110V 60Hz)
 │   ├── NTS,NTU-C.pdf                 # 明緯原廠 NTS/NTU 遠端通訊使用手冊
@@ -150,6 +153,15 @@ NTU-1200-112US (RJ11)               標準 RS-232 (DB9)
 │ Pin 4 (Tx) ──┼────────────────────►│ Pin 2 (RXD)            │
 └──────────────┘                     └────────────────────────┘
 ```
+
+> [!TIP]
+> ### 📸 現場實物四芯線與 DB9 免焊端子台直鎖指引 (`docs/R11_RS232/`)
+> 依據專案現役實物寫真（[docs/R11_RS232/README.md](file:///d:/Work_Room/App_Development/NTU-1200-112US/docs/R11_RS232/README.md)），若使用**棕、藍、橘、綠**四芯電話線搭配綠色 DB9 螺絲端子台，請直接依以下顏色直鎖：
+> - **橘色線 (逆變器 Tx)** ──► 鎖入 DB9 端子台 **`2` 號孔 (RXD)**
+> - **棕色線 (逆變器 Rx)** ──► 鎖入 DB9 端子台 **`3` 號孔 (TXD)**
+> - **藍色線 (逆變器 GND)** ──► 鎖入 DB9 端子台 **`5` 號孔 (GND)**
+> - **綠色線 (逆變器 NC)** ──► **剪平絕緣，懸空不接**
+> - 口訣：**橘鎖 2、棕鎖 3、藍鎖 5、綠絕緣**！完整實拍請點閱：[docs/R11_RS232 實體接線對照手冊](file:///d:/Work_Room/App_Development/NTU-1200-112US/docs/R11_RS232/README.md)。
 
 > [!CAUTION]
 > **嚴正安全警語**：
