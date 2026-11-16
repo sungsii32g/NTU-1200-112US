@@ -259,3 +259,33 @@
 - Git 備份標籤：`backup/NTU-1200-112US_20261116_170500`。
 - 物理空間姿態檢驗：`PASS`（卡榫朝上、金針朝下時，Slot 2 棕色=Pin 2 Rx、Slot 3 藍色=Pin 3 GND、Slot 4 橘色=Pin 4 Tx，完全吻合）。
 - 文檔結構一致性檢查：`PASS`（`README.md`、`docs/RJ11_RS232_Pinout_Diagram.md`、`docs/R11_RS232/README.md` 全面同步）。
+
+
+---
+
+## [2026-11-16 23:30:00 +08:00] - 批次檔 CRLF 斷行修復、編碼亂碼徹底根除與硬體逾時除錯指引強化
+
+### 變更類型
+- `Bug Fix / Batch Script Encoding & Line Ending / UI Telemetry Diagnostics`
+
+### 變更目的
+修復使用者在 Windows 執行 `start_web_local.bat` 時出現 `o`、`ttp:`、`.server`、`l`、`?芸皜砍 Python...` 等非預期截斷命令與亂碼之問題；徹底解決 Windows `cmd.exe` 在解析 Unix `LF` 斷行時產生的位元偏移與 OEM 編碼崩潰；同時針對硬體實體連線後未顯示遙測數據之情境，於 Web Serial 前端加入 1.5 秒無回應之即時視覺診斷提示。
+
+### 變更內容
+1. **批次檔 Windows CRLF 斷行與 UTF-8 BOM 全面正規化**：
+   - 全面將 `start_web_local.bat`、`pc-laptop-hmi\start_pc_hmi.bat`、`pc-laptop-hmi\build_exe.bat` 由 Unix `LF (\n)` 轉換為標準 Windows `CRLF (\r\n)`，徹底根除 `cmd.exe` 讀取多位元組 UTF-8 時產生的偏移截斷。
+   - 增加 `.gitattributes` 明確約束 `*.bat text eol=crlf` 與 `*.cmd text eol=crlf`，防止後續 Git checkout 誤轉。
+2. **`start_web_local.bat` 啟動引擎健壯性大幅升級**：
+   - 依序智慧探測 `python` ──► `py` ──► `python3` 命令，若皆未安裝則自動調用 Windows 原生 PowerShell `HttpListener` 啟動免依賴 Web 伺服器。
+   - 改採非同步延遲 1 秒呼叫預設瀏覽器（`start "" cmd /c "timeout /t 1 >nul & start http://localhost:8080/"`），避免瀏覽器在伺服器綁定埠前過早請求導致 404/拒絕連線。
+3. **Web Serial 遙測逾時與硬體線路對調即時診斷提示**：
+   - 於 `app.js`（同步更新 `web-serial-hmi/app.js`、`docs/app.js`、根目錄 `app.js`）加入 `lastValidPacketTime` 與 1.5 秒逾時偵測機制。
+   - 當串口已開啟但逆變器超過 1.5 秒未回傳封包時，連線徽章自動變更為橘色警告 `badge-stale`，並於狀態欄與原始接收區即時提示「(逾時無回應：請確認逆變器已開機通電，或將端子台 2 號橘線與 3 號棕線對調測試)」。
+
+### 影響範圍
+- 本機啟動批次檔、Git 換行規範與 Web Serial 前端診斷邏輯，不破壞任何既有通訊協定契約與上位機核心資料結構。
+
+### 驗證狀態
+- Git 備份標籤：`backup/NTU-1200-112US_20261116_232800`。
+- 批次檔執行測試：`PASS`（`cmd.exe /c start_web_local.bat` 輸出完全正常，中文無亂碼，指令無截斷）。
+- Web 前端一致性檢驗：`PASS`（三處 `app.js` 檔案雜湊一致且功能閉環）。

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 > nul
 title MEAN WELL NTU-1200-112US EXE 快速建置腳本
 

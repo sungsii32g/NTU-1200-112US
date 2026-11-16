@@ -1,0 +1,3 @@
+# Enforce CRLF on Windows batch files to prevent cmd.exe parser drift
+*.bat text eol=crlf
+*.cmd text eol=crlf

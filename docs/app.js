@@ -12,6 +12,7 @@ let isDemoMode = false;
 let pollingTimer = null;
 let mockStep = 0;
 let lastPacketTime = 0;
+let lastValidPacketTime = 0;
 let historyPoints = []; // 60s 趨勢圖 (vbat, watts)
 let pendingConfirmAction = null;
 let currentBitString = '0000000000000000000';
@@ -428,6 +429,7 @@ btnDisconnect.addEventListener('click', async () => {
 
 async function disconnectSerial() {
   isPolling = false;
+  lastValidPacketTime = 0;
   if (pollingTimer) clearInterval(pollingTimer);
 
   if (reader) {
@@ -459,6 +461,14 @@ function resetPollingTimer() {
         await writer.write('Q\r');
         rawTxLine.textContent = 'Q\\r';
         lastPacketTime = tStart;
+
+        // 若超過 1.5 秒未收到逆變器有效回覆，提示逾時與排錯方向
+        if (lastValidPacketTime > 0 && performance.now() - lastValidPacketTime > 1500) {
+          setConnectionStatus('等待逆變器回覆 (逾時)', true, true);
+          if (rawRxLine.textContent === '--' || !rawRxLine.textContent.startsWith('(')) {
+            rawRxLine.textContent = '(逾時無回應：請確認逆變器已開機通電，或將端子台 2 號橘線與 3 號棕線對調測試)';
+          }
+        }
       } catch(e) {
         setConnectionStatus('通訊發送異常', false, false);
       }
@@ -482,6 +492,7 @@ function resetPollingTimer() {
 // 實體串口輪詢循環
 async function startSerialPolling() {
   isPolling = true;
+  lastValidPacketTime = performance.now();
   const textDecoder = new TextDecoderStream();
   const readableStreamClosed = serialPort.readable.pipeTo(textDecoder.writable);
   reader = textDecoder.readable.getReader();
@@ -515,6 +526,7 @@ async function readSerialLoop() {
           rawRxLine.textContent = packet;
 
           if (packet.startsWith('(') && packet.endsWith(')')) {
+            lastValidPacketTime = performance.now();
             parseAndRender(packet);
             setConnectionStatus('正常運作', true, false);
           } else if (packet.includes('MEAN WELL') || packet.includes('REV') || packet.length > 5) {
