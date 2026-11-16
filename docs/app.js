@@ -408,6 +408,15 @@ btnWebSerial.addEventListener('click', async () => {
       bufferSize: 255
     });
 
+    // 強制拉高 DTR 與 RTS 信號 (為 MOXA TCC-82 光耦隔離器及 RS-232 埠供電)
+    if (serialPort.setSignals) {
+      try {
+        await serialPort.setSignals({ dataTerminalReady: true, requestToSend: true });
+      } catch (sigErr) {
+        console.warn('設置 DTR/RTS 信號警告:', sigErr);
+      }
+    }
+
     stopDemoMode();
     btnDisconnect.classList.remove('hidden');
     btnWebSerial.classList.add('hidden');
@@ -516,10 +525,13 @@ async function readSerialLoop() {
       if (done) break;
       if (value) {
         buffer += value;
-        const crIdx = buffer.indexOf('\r');
-        if (crIdx !== -1) {
-          const packet = buffer.substring(0, crIdx).trim();
-          buffer = buffer.substring(crIdx + 1);
+        // 同時相容 \r, \n, \r\n 各種斷行字元
+        let endIdx;
+        while ((endIdx = buffer.search(/[\r\n]/)) !== -1) {
+          const packet = buffer.substring(0, endIdx).trim();
+          buffer = buffer.substring(endIdx + 1).replace(/^[\r\n]+/, '');
+
+          if (packet.length === 0) continue;
 
           const latency = Math.round(performance.now() - lastPacketTime);
           latencyVal.textContent = `${latency} ms`;
@@ -529,7 +541,8 @@ async function readSerialLoop() {
             lastValidPacketTime = performance.now();
             parseAndRender(packet);
             setConnectionStatus('正常運作', true, false);
-          } else if (packet.includes('MEAN WELL') || packet.includes('REV') || packet.length > 5) {
+          } else {
+            // 所有非 Q 狀態字串 (如 I 指令回覆之設備型號版本) 均即時更新至設備資訊框
             deviceInfoBox.textContent = packet;
           }
         }
@@ -911,9 +924,15 @@ btnEnableSaving.addEventListener('click', () => sendCommand('W 1\r'));
 btnDisableSaving.addEventListener('click', () => sendCommand('W 0\r'));
 btnUnlock.addEventListener('click', () => sendCommand('pU\r'));
 
-btnQueryInfo.addEventListener('click', () => {
-  sendCommand('I\r');
+btnQueryInfo.addEventListener('click', async () => {
   deviceInfoBox.textContent = '正在發送 I 指令讀取設備資訊...';
+  // 暫停 Q 輪詢 800ms，給予 I 指令獨立通訊窗口避免碰撞
+  const wasPolling = isPolling;
+  if (pollingTimer) clearInterval(pollingTimer);
+  await sendCommand('I\r');
+  setTimeout(() => {
+    if (wasPolling && isPolling) resetPollingTimer();
+  }, 800);
 });
 
 // 預設電壓頻率配置

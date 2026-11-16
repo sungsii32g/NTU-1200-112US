@@ -289,3 +289,34 @@
 - Git 備份標籤：`backup/NTU-1200-112US_20261116_232800`。
 - 批次檔執行測試：`PASS`（`cmd.exe /c start_web_local.bat` 輸出完全正常，中文無亂碼，指令無截斷）。
 - Web 前端一致性檢驗：`PASS`（三處 `app.js` 檔案雜湊一致且功能閉環）。
+
+
+---
+
+## [2026-11-16 23:36:00 +08:00] - Web Serial DTR/RTS 隔離器埠供電修復、全斷行字元解析相容與 I 指令防碰撞升級
+
+### 變更類型
+- `Bug Fix / Web Serial Protocol Communication / Flow Control & Power Assertion`
+
+### 變更目的
+針對實體連線後發送 `I\r` 或 `Q\r` 逆變器均無回傳資料之問題，進行程式代碼層與硬體電氣層全面深度審查。修復 Web Serial 缺少 DTR/RTS 導致 MOXA TCC-82 光電隔離器完全斷電之致命代碼缺陷；修復封包斷行解析僅限 `\r` 之脆弱性；並解決 `I\r` 查詢與背景 500ms `Q\r` 輪詢在單一串口產生之併發衝突。
+
+### 變更內容
+1. **Web Serial 強制拉高 DTR 與 RTS 信號 (`app.js`)**：
+   - 於 `serialPort.open(...)` 成功後立即呼叫 `serialPort.setSignals({ dataTerminalReady: true, requestToSend: true })`。
+   - 為串接 MOXA TCC-82 埠供電型光耦隔離器提供必要之 +6V~+10V 激勵電源，確保光電隔離晶片正常工作。
+2. **通訊封包斷行正規化相容 (`/[\r\n]/`)**：
+   - 將 `buffer.indexOf('\r')` 改寫為正則表達式 `buffer.search(/[\r\n]/)` 迴圈提取。
+   - 同時相容 `\r`、`\n`、`\r\n`，徹底解決若韌體僅送出 `\n` 導致 `buffer` 無限堆積不解析之問題。
+   - 所有非 `(` 開頭的字串（包含 `I` 指令回傳之任何格式）無條件提取並即時寫入設備資訊框。
+3. **`I\r` 查詢指令防併發碰撞機制**：
+   - 點擊「查詢設備 (I)」時，自動暫停背景 `Q\r` 輪詢 800ms，為 `I` 指令提供乾淨獨立之通訊窗口，避免與輪詢產生位元碰撞。
+4. **全端檔案同步**：
+   - 同步更新 `web-serial-hmi/app.js`、`docs/app.js` 與根目錄 `app.js`。
+
+### 影響範圍
+- Web Serial 通訊驅動與事件處理，不破壞任何既有 UI 佈局或資料結構。
+
+### 驗證狀態
+- Git 備份標籤：`backup/NTU-1200-112US_20261116_233500`。
+- 代碼靜態分析：`PASS`（DTR/RTS 供電、全斷行正規劃與 800ms 避碰機制閉環完整）。
