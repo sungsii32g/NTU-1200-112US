@@ -435,3 +435,39 @@
 - Git 備份標籤：`backup/NTU-1200-112US_20261117_002340`。
 - WPF 建置發布：`PASS`（`dotnet publish` 0 警告 0 錯誤）。
 - 協定與手冊圖紙一致性：`PASS`（100% 符應 `NTS,NTU-C.pdf` 第 34~54 頁）。
+
+---
+
+## [2026-11-17 15:55:00 +08:00] - 實體 Remote Port RJ11 正視 (6到1) 腳位重新校準、實測 -9.1V/0V 電氣原理剖析與 10 秒抓真 Tx SOP
+
+### 變更類型
+- `Documentation / Hardware Pinout & Electrical Diagnostic SOP Update`
+
+### 變更目的
+依據使用者實測數據（DB9 端子 3 號孔量測 -9.1V，端子 2 號孔量測 0V）以及原廠規格書第 6 頁《Remote port connector (RJ11)》圖紙與機身實體鋼印刻字（正視母座卡榫朝上時，腳位由左至右為 `6 5 4 3 2 1`），全方面校準接線說明手冊，徹底消除圖示與實體之間「由左至右 1~6 vs 6~1」之混淆，並提供電錶 10 秒抓出真實 NTU-1200 Tx 腳位的終極排錯 SOP。
+
+### 變更內容
+1. **收錄原廠核定圖紙**：
+   - 將原廠 Remote Port 定義圖紙歸檔至 `docs/R11_RS232/official_remote_port_pinout.png`。
+   - 明確標註正視母座（卡榫凹槽在頂部時）之實體針腳由左至右為 **`Pin 6`、`Pin 5`、`Pin 4`、`Pin 3`、`Pin 2`、`Pin 1`**。
+2. **水晶頭插入姿態與線色對齊校準**：
+   - 卡榫朝上插入時，由左至右各槽位對應：
+     - Pin 6: 空槽 (NC)
+     - Pin 5: 綠色線 (NC) ──► 剪平絕緣不接
+     - Pin 4: **橘色線 (Inverter Tx)** ──► 鎖入 DB9 端子台 **`2` 號孔 (RXD)**
+     - Pin 3: **藍色線 (Inverter GND)** ──► 鎖入 DB9 端子台 **`5` 號孔 (GND)**
+     - Pin 2: **棕色線 (Inverter Rx)** ──► 鎖入 DB9 端子台 **`3` 號孔 (TXD)**
+     - Pin 1: 空槽 (NC)
+3. **實測電壓剖析與 10 秒抓真 Tx 檢驗法**：
+   - 詳解 DB9 端子 3 號孔量到 -9.1V 為電腦 TXD 待命之標準 RS-232 MARK 負電壓，證實電腦端正常。
+   - 詳解 DB9 端子 2 號孔量到 0V 之物理成因（RXD 為純輸入，電壓必須由逆變器 Tx 提供；若為 0V 代表逆變器未開機或線色鏡像反接）。
+   - 提供脫開端子台、直接在逆變器出線上量測負電壓之 10 秒黃金判定 SOP。
+
+### 影響範圍
+- `docs/R11_RS232/README.md`
+- `docs/RJ11_RS232_Pinout_Diagram.md`
+- `docs/R11_RS232/official_remote_port_pinout.png`
+
+### 驗證狀態
+- Git 備份標籤：`backup/NTU-1200-112US_20261117_155000`。
+- 圖面與實物一致性：`PASS`（完全符應使用者上傳圖紙與機身刻字）。
