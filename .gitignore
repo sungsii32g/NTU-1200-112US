@@ -46,3 +46,6 @@ pc-laptop-hmi/logs/
 .DS_Store
 Thumbs.db
 
+# Scratch temp files
+scratch/
+
