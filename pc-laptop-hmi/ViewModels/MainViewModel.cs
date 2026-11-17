@@ -476,6 +476,63 @@ public class MainViewModel : INotifyPropertyChanged
         MessageBox.Show($"工程警戒門檻與通訊配置已儲存生效：\n• 電池低壓預警: {LowBatWarnThreshold:F1} V\n• 電池低壓切斷: {LowBatCutoffThreshold:F1} V\n• 電池過壓預警: {HighBatWarnThreshold:F1} V\n• 負載過載預警: {OverloadWarnThreshold:F0} W\n• 機溫過熱預警: {TempWarnThreshold:F1} °C\n• 輪詢刷新節奏: {SelectedPollRateMs} ms", "工程門檻配置儲存", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
+    public void ApplyBatteryPreset(string preset)
+    {
+        switch (preset.ToLowerInvariant())
+        {
+            case "uxh100":
+                LowBatWarnThreshold = 11.5;
+                LowBatCutoffThreshold = 10.6;
+                OverloadWarnThreshold = 950;
+                TempWarnThreshold = 55.0;
+                MessageBox.Show("✅ 已成功一鍵套用【湯淺 YUASA UXH100-12FR】建議門檻：\n" +
+                                "• 電池低壓預警: 11.5 V（剩餘約 25%~30%，提醒市電回充或減載）\n" +
+                                "• 電池低壓切斷: 10.6 V（對齊原廠 10.50V~10.80V 放電終止線，防止極板硫化）\n" +
+                                "• 負載過載容量: 950 W（單顆 100Ah 電池在大電流 90A+ 下壓降溫升保護）\n" +
+                                "• 內部過溫警戒: 55.0 °C\n\n" +
+                                "💡 貼心提醒：25°C 下標準浮充電壓為 13.65V ± 0.15V，外部充電電流請限制在 25A 以下。",
+                                "UXH100-12FR 電池門檻配置", MessageBoxButton.OK, MessageBoxImage.Information);
+                break;
+            case "agmgel":
+                LowBatWarnThreshold = 11.6;
+                LowBatCutoffThreshold = 10.8;
+                OverloadWarnThreshold = 1000;
+                TempWarnThreshold = 55.0;
+                MessageBox.Show("✅ 已成功一鍵套用【常規 AGM / GEL 膠體深循環電池】建議門檻：\n" +
+                                "• 電池低壓預警: 11.6 V\n" +
+                                "• 電池低壓切斷: 10.8 V\n" +
+                                "• 負載過載容量: 1000 W\n" +
+                                "• 內部過溫警戒: 55.0 °C",
+                                "常規深循環電池門檻配置", MessageBoxButton.OK, MessageBoxImage.Information);
+                break;
+            case "lifepo4":
+                LowBatWarnThreshold = 12.5;
+                LowBatCutoffThreshold = 11.2;
+                OverloadWarnThreshold = 1200;
+                TempWarnThreshold = 50.0;
+                MessageBox.Show("✅ 已成功一鍵套用【磷酸鐵鋰 LiFePO4 (4S)】建議門檻：\n" +
+                                "• 電池低壓預警: 12.5 V (鐵鋰放電平台平坦，12.5V 進入後段拐點)\n" +
+                                "• 電池低壓切斷: 11.2 V (單芯 2.8V 截止，防止觸發 BMS 硬切斷)\n" +
+                                "• 負載過載容量: 1200 W (鋰電池支援大倍率全功率輸出)\n" +
+                                "• 內部過溫警戒: 50.0 °C",
+                                "磷酸鐵鋰門檻配置", MessageBoxButton.OK, MessageBoxImage.Information);
+                break;
+            case "default":
+            default:
+                LowBatWarnThreshold = 11.0;
+                LowBatCutoffThreshold = 10.0;
+                OverloadWarnThreshold = 1200;
+                TempWarnThreshold = 65.0;
+                MessageBox.Show("✅ 已恢復【明緯原廠出廠預設值】：\n" +
+                                "• 電池低壓預警: 11.0 V\n" +
+                                "• 電池低壓切斷: 10.0 V\n" +
+                                "• 負載過載容量: 1200 W\n" +
+                                "• 內部過溫警戒: 65.0 °C",
+                                "原廠預設門檻配置", MessageBoxButton.OK, MessageBoxImage.Information);
+                break;
+        }
+    }
+
     private void OnTelemetryReceivedHandler(NtuTelemetry data)
     {
         Application.Current?.Dispatcher.Invoke(() =>

@@ -577,7 +577,95 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- 4. 系統工程警報門檻自訂設定 (Custom Alarm Setpoints & Polling Engine Controls) -->
+                    <!-- 4. 常用深層循環電池建議設定與一鍵套用 (Deep Cycle Battery Presets) -->
+                    <Border Style="{StaticResource IndustrialCard}" Margin="0,0,0,14">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,12">
+                                <TextBlock Text="🔋 常用深層循環電池建議設定與一鍵套用 (Deep Cycle Battery Presets)" FontWeight="Bold" FontSize="14" Foreground="White" />
+                                <TextBlock DockPanel.Dock="Right" Text="點擊立即自動寫入最佳化低壓防護與負載警戒門檻" FontSize="11" Foreground="{StaticResource AccentCyan}" />
+                            </DockPanel>
+
+                            <!-- 一鍵套用預設按鈕排 -->
+                            <WrapPanel Margin="0,0,0,14">
+                                <Button Content="🏆 湯淺 UXH100-12FR (首選: 11.5V / 10.6V / 950W)" Click="BtnApplyUXH100_Click" Background="#0284C7" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="🔋 常規 AGM / GEL (11.6V / 10.8V / 1000W)" Click="BtnApplyAgmGel_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="⚡ 磷酸鐵鋰 LiFePO4 (12.5V / 11.2V / 1200W)" Click="BtnApplyLifePo4_Click" Background="#1E293B" BorderBrush="{StaticResource AccentCyan}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                                <Button Content="🏭 明緯出廠原廠預設 (11.0V / 10.0V / 1200W)" Click="BtnApplyDefaultBat_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" Margin="0,0,8,8" />
+                            </WrapPanel>
+
+                            <!-- 規格書深入分析與設定依據詳細說明表 (Card / Grid) -->
+                            <Border Background="#0F172A" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="14">
+                                <StackPanel>
+                                    <TextBlock Text="📋 為什麼 UXH100-12FR 建議這樣設定？（依原廠性能規格書科學分析）" FontWeight="Bold" FontSize="12" Foreground="{StaticResource AccentAmber}" Margin="0,0,0,8" />
+                                    
+                                    <!-- 項目對照表 -->
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1.2*" />
+                                            <ColumnDefinition Width="1*" />
+                                            <ColumnDefinition Width="1.2*" />
+                                            <ColumnDefinition Width="2.5*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <!-- 標頭 -->
+                                        <Border Grid.Row="0" Grid.Column="0" Background="#1E293B" Padding="6,4"><TextBlock Text="監控項目" FontWeight="Bold" FontSize="11" Foreground="{StaticResource TextMuted}" /></Border>
+                                        <Border Grid.Row="0" Grid.Column="1" Background="#1E293B" Padding="6,4"><TextBlock Text="原廠預設值" FontWeight="Bold" FontSize="11" Foreground="{StaticResource TextMuted}" /></Border>
+                                        <Border Grid.Row="0" Grid.Column="2" Background="#1E293B" Padding="6,4"><TextBlock Text="UXH100-12FR 建議" FontWeight="Bold" FontSize="11" Foreground="{StaticResource AccentCyan}" /></Border>
+                                        <Border Grid.Row="0" Grid.Column="3" Background="#1E293B" Padding="6,4"><TextBlock Text="規格書設定依據與保護原理" FontWeight="Bold" FontSize="11" Foreground="{StaticResource TextMuted}" /></Border>
+
+                                        <!-- 列 1: 低壓預警 -->
+                                        <Border Grid.Row="1" Grid.Column="0" Padding="6,4" BorderBrush="#1E293B" BorderThickness="0,0,0,1"><TextBlock Text="電池低壓預警 (V)" FontSize="11" Foreground="White" /></Border>
+                                        <Border Grid.Row="1" Grid.Column="1" Padding="6,4" BorderBrush="#1E293B" BorderThickness="0,0,0,1"><TextBlock Text="11.0 V" FontSize="11" Foreground="{StaticResource TextDim}" /></Border>
+                                        <Border Grid.Row="1" Grid.Column="2" Padding="6,4" BorderBrush="#1E293B" BorderThickness="0,0,0,1"><TextBlock Text="11.5 V ～ 11.6 V" FontWeight="Bold" FontSize="11" Foreground="{StaticResource AccentCyan}" /></Border>
+                                        <Border Grid.Row="1" Grid.Column="3" Padding="6,4" BorderBrush="#1E293B" BorderThickness="0,0,0,1"><TextBlock Text="提醒電量已進入後段（剩餘約 25%~30%），該準備市電回充或減載防突然跳機。" FontSize="11" Foreground="{StaticResource TextDim}" TextWrapping="Wrap" /></Border>
+
+                                        <!-- 列 2: 低壓切斷 -->
+                                        <Border Grid.Row="2" Grid.Column="0" Padding="6,4" BorderBrush="#1E293B" BorderThickness="0,0,0,1"><TextBlock Text="電池低壓切斷 (V)" FontSize="11" Foreground="White" /></Border>
+                                        <Border Grid.Row="2" Grid.Column="1" Padding="6,4" BorderBrush="#1E293B" BorderThickness="0,0,0,1"><TextBlock Text="10.0 V" FontSize="11" Foreground="{StaticResource TextDim}" /></Border>
+                                        <Border Grid.Row="2" Grid.Column="2" Padding="6,4" BorderBrush="#1E293B" BorderThickness="0,0,0,1"><TextBlock Text="10.6 V ～ 10.8 V" FontWeight="Bold" FontSize="11" Foreground="{StaticResource AccentGreen}" /></Border>
+                                        <Border Grid.Row="2" Grid.Column="3" Padding="6,4" BorderBrush="#1E293B" BorderThickness="0,0,0,1"><TextBlock Text="對齊原廠 5~20 小時放電終止線 (10.50V~10.80V)，徹底防止鉛酸極板硫酸鹽化。" FontSize="11" Foreground="{StaticResource TextDim}" TextWrapping="Wrap" /></Border>
+
+                                        <!-- 列 3: 過載容量 -->
+                                        <Border Grid.Row="3" Grid.Column="0" Padding="6,4"><TextBlock Text="負載過載容量 (W)" FontSize="11" Foreground="White" /></Border>
+                                        <Border Grid.Row="3" Grid.Column="1" Padding="6,4"><TextBlock Text="1200 W" FontSize="11" Foreground="{StaticResource TextDim}" /></Border>
+                                        <Border Grid.Row="3" Grid.Column="2" Padding="6,4"><TextBlock Text="900 W ～ 1000 W" FontWeight="Bold" FontSize="11" Foreground="{StaticResource AccentAmber}" /></Border>
+                                        <Border Grid.Row="3" Grid.Column="3" Padding="6,4"><TextBlock Text="單顆 100Ah 電池長期抽載超過 1000W（電流 90A+）壓降溫升較大，上限設 950W 為宜。" FontSize="11" Foreground="{StaticResource TextDim}" TextWrapping="Wrap" /></Border>
+                                    </Grid>
+
+                                    <!-- 續航與回充提示 -->
+                                    <Grid Margin="0,4,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1*" />
+                                            <ColumnDefinition Width="1*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Background="#162032" CornerRadius="6" Padding="8" Margin="0,0,4,0">
+                                            <StackPanel>
+                                                <TextBlock Text="⏱️ 負載續航參考 (25°C 滿電狀態)" FontWeight="Bold" FontSize="11" Foreground="{StaticResource AccentCyan}" Margin="0,0,0,4" />
+                                                <TextBlock Text="• 輕載 (110W~210W)：至 10.8V 約 5~10 小時，預警 11.6V / 切斷 10.8V" FontSize="10" Foreground="{StaticResource TextDim}" />
+                                                <TextBlock Text="• 中載 (約 450W)：至 10.8V 約 2 小時，預警 11.5V / 切斷 10.6V" FontSize="10" Foreground="{StaticResource TextDim}" />
+                                                <TextBlock Text="• 重載 (約 800W)：至 10.8V 約 1 小時，內阻壓降大，切斷設 10.5V~10.6V" FontSize="10" Foreground="{StaticResource TextDim}" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Grid.Column="1" Background="#162032" CornerRadius="6" Padding="8" Margin="4,0,0,0">
+                                            <StackPanel>
+                                                <TextBlock Text="🔌 浮充與回充規格提醒" FontWeight="Bold" FontSize="11" Foreground="{StaticResource AccentAmber}" Margin="0,0,0,4" />
+                                                <TextBlock Text="• 標準浮充電壓：25°C 下為 13.65 V ± 0.15 V (13.50V ~ 13.80V)" FontSize="10" Foreground="{StaticResource TextDim}" />
+                                                <TextBlock Text="• 最大充電電流限制：嚴格限制 ≤ 25 A (0.25CA)，切勿快充防失水鼓脹" FontSize="10" Foreground="{StaticResource TextDim}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 5. 系統工程警報門檻自訂設定 (Custom Alarm Setpoints & Polling Engine Controls) -->
                     <Border Style="{StaticResource IndustrialCard}" Margin="0,0,0,14">
                         <StackPanel>
                             <DockPanel Margin="0,0,0,12">

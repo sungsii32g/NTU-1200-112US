@@ -39,6 +39,8 @@ obj/
 __pycache__/
 *.pyc
 pc-laptop-hmi/logs/
+**/publish/logs/
+**/logs/*.csv
 
 # OS files
 .DS_Store

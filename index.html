@@ -400,7 +400,124 @@
         </div>
       </section>
 
-      <!-- 4. 系統安全警戒門檻與通訊節奏自訂 -->
+      <!-- 4. 常用深層循環電池建議設定與一鍵套用 (Deep Cycle Battery Presets) -->
+      <section class="card battery-preset-card">
+        <div class="card-header">
+          <h2>🔋 常用深層循環電池建議設定與一鍵套用 (Deep Cycle Battery Presets)</h2>
+          <span class="lock-tag" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); border: 1px solid rgba(6, 182, 212, 0.3);">⚡ 點擊一鍵填入推薦參數</span>
+        </div>
+        <p class="section-desc">依據電池化學特徵與放電終止特性，一鍵切換最佳化安全低壓保護與負載容量門檻，避免鉛酸蓄電池極板硫化損毀：</p>
+        
+        <!-- 一鍵套用卡片矩陣 -->
+        <div class="battery-preset-grid">
+          <!-- 預設 1: 湯淺 UXH100-12FR -->
+          <div class="battery-preset-box preset-active" id="boxPresetUXH100">
+            <div class="preset-badge">🏆 本機推薦首選</div>
+            <div class="preset-name">湯淺 YUASA UXH100-12FR</div>
+            <div class="preset-type">12V 100Ah 難燃長壽命高率 AGM 鉛酸</div>
+            <div class="preset-values">
+              <span class="p-val">低壓預警: <strong>11.5 V</strong></span>
+              <span class="p-val">低壓切斷: <strong>10.6 V</strong></span>
+              <span class="p-val">過載容量: <strong>950 W</strong></span>
+            </div>
+            <button class="btn btn-primary btn-apply-preset" data-preset="uxh100" style="margin-top:0.4rem; width:100%;">⚡ 一鍵套用 UXH100 設定</button>
+          </div>
+
+          <!-- 預設 2: 常規 AGM / GEL -->
+          <div class="battery-preset-box" id="boxPresetAgmGel">
+            <div class="preset-badge badge-gray">常規標準</div>
+            <div class="preset-name">常規 AGM / GEL 膠體深循環</div>
+            <div class="preset-type">12V 100Ah ~ 200Ah 工業蓄電池組</div>
+            <div class="preset-values">
+              <span class="p-val">低壓預警: <strong>11.6 V</strong></span>
+              <span class="p-val">低壓切斷: <strong>10.8 V</strong></span>
+              <span class="p-val">過載容量: <strong>1000 W</strong></span>
+            </div>
+            <button class="btn btn-outline btn-apply-preset" data-preset="agmgel" style="margin-top:0.4rem; width:100%;">套用常規 AGM/GEL</button>
+          </div>
+
+          <!-- 預設 3: 磷酸鐵鋰 -->
+          <div class="battery-preset-box" id="boxPresetLiFePO4">
+            <div class="preset-badge badge-blue">大功率長效</div>
+            <div class="preset-name">磷酸鐵鋰電池 (LiFePO4)</div>
+            <div class="preset-type">12.8V 4S 100Ah ~ 200Ah 鋰鐵電池組</div>
+            <div class="preset-values">
+              <span class="p-val">低壓預警: <strong>12.5 V</strong></span>
+              <span class="p-val">低壓切斷: <strong>11.2 V</strong></span>
+              <span class="p-val">過載容量: <strong>1200 W</strong></span>
+            </div>
+            <button class="btn btn-outline btn-apply-preset" data-preset="lifepo4" style="margin-top:0.4rem; width:100%;">套用磷酸鐵鋰</button>
+          </div>
+
+          <!-- 預設 4: 明緯原廠預設 -->
+          <div class="battery-preset-box" id="boxPresetDefault">
+            <div class="preset-badge badge-amber">出廠極限</div>
+            <div class="preset-name">明緯原廠出廠預設值</div>
+            <div class="preset-type">MEAN WELL 原廠寬容度極限設定</div>
+            <div class="preset-values">
+              <span class="p-val">低壓預警: <strong>11.0 V</strong></span>
+              <span class="p-val">低壓切斷: <strong>10.0 V</strong></span>
+              <span class="p-val">過載容量: <strong>1200 W</strong></span>
+            </div>
+            <button class="btn btn-outline btn-apply-preset" data-preset="default" style="margin-top:0.4rem; width:100%;">恢復原廠預設值</button>
+          </div>
+        </div>
+
+        <!-- 規格書深入分析與設定依據詳細說明表 -->
+        <div class="battery-guide-table-wrapper">
+          <div class="guide-table-title">📋 為什麼 UXH100-12FR 建議這樣設定？（依原廠性能規格書科學分析）</div>
+          <table class="battery-guide-table">
+            <thead>
+              <tr>
+                <th>監控項目</th>
+                <th>原廠預設值</th>
+                <th>UXH100-12FR 建議設定</th>
+                <th>規格依據與工程保護原理</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>電池低壓預警 (V)</strong></td>
+                <td>11.0 V</td>
+                <td><span class="highlight-cyan">11.5 V ～ 11.6 V</span></td>
+                <td>提醒電量已進入後段（約剩餘 25%～30%），該準備市電回充或提早減載，避免突然斷電跳機。</td>
+              </tr>
+              <tr>
+                <td><strong>電池低壓切斷 (V)</strong></td>
+                <td>10.0 V</td>
+                <td><span class="highlight-green">10.6 V ～ 10.8 V</span></td>
+                <td><strong>對齊原廠 5~20 小時放電終止線 (10.50V~10.80V)</strong>。常規放電若低於 10.0V 會導致鉛酸極板快速硫酸鹽化，電池壽命大幅折損。</td>
+              </tr>
+              <tr>
+                <td><strong>負載過載容量 (W)</strong></td>
+                <td>1200 W</td>
+                <td><span class="highlight-amber">900 W ～ 1000 W</span></td>
+                <td>單顆 100Ah 電池長期抽載超過 1000W（放電電流達 90A+），內阻壓降與溫升顯著，建議上限設 900W~1000W 以策安全。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="battery-extra-tips">
+            <div class="tip-card">
+              <div class="tip-header">⏱️ 不同負載瓦數下的續航與電壓參考（25°C 滿電狀態）</div>
+              <ul class="tip-list">
+                <li><strong>輕載（約 110W ～ 210W）</strong>：放電至 10.8V 約可維持 <strong>5 ～ 10 小時</strong>。電壓下跌平緩，建議預警設 <strong>11.6 V</strong>、切斷設 <strong>10.8 V</strong>。</li>
+                <li><strong>中載（約 450W）</strong>：放電至 10.8V 約可維持 <strong>2 小時</strong>。建議預警設 <strong>11.5 V</strong>、切斷設 <strong>10.6 V</strong>。</li>
+                <li><strong>重載（約 800W）</strong>：放電至 10.8V 約可維持 <strong>1 小時</strong>。大電流下電池內阻（約 5mΩ）與線阻壓降較大，切斷設 <strong>10.5 V ～ 10.6 V</strong> 避免提早跳機。</li>
+              </ul>
+            </div>
+            <div class="tip-card">
+              <div class="tip-header">🔌 外部充電器或市電浮充回充重要提醒</div>
+              <ul class="tip-list">
+                <li><strong>標準浮充電壓</strong>：25°C 環境下為 <strong>13.65 V ± 0.15 V</strong>（13.50V ～ 13.80V 區間）。</li>
+                <li><strong>最大充電電流限制</strong>：請嚴格限制在 <strong>25 A 以下（0.25 CA）</strong>，切勿使用超過 25A 的快充電流，以免電池內部失水發熱或鼓脹損壞。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 系統安全警戒門檻與通訊節奏自訂 -->
       <section class="card">
         <div class="card-header">
           <h2>🛡️ 系統安全警戒門檻與通訊節奏自訂 (Custom Alarm Setpoints & Polling)</h2>

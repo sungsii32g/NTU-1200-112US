@@ -126,6 +126,26 @@ public partial class MainWindow : Window
         ViewModel.SaveThresholds();
     }
 
+    private void BtnApplyUXH100_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ApplyBatteryPreset("uxh100");
+    }
+
+    private void BtnApplyAgmGel_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ApplyBatteryPreset("agmgel");
+    }
+
+    private void BtnApplyLifePo4_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ApplyBatteryPreset("lifepo4");
+    }
+
+    private void BtnApplyDefaultBat_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ApplyBatteryPreset("default");
+    }
+
     private void BtnOpenLogFolder_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.OpenLogFolder();

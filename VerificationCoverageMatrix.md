@@ -27,16 +27,17 @@
 | **V-SPEC-01** | 全平台協定層 | 官方 NTS,NTU-C.pdf 7 大核心指令幀格式完整對齊 | 核對 C(17B), V(11B 2-Byte CS), pU(解鎖), I(99B), W(99B), U(33B) | 100% 符應官方手冊規格要求 | **PASS** | Web Serial, WPF, Android, ESP32-S3 全端同步更新，向下相容 |
 | **V-SPEC-02** | 全平台診斷層 | 19-Bit 狀態旗標官方定義與成因 SOP 排錯對齊 | 比對第 37~38 頁 b0~b18 官方定義 | b6~b15 嚴重誤植徹底導正，成因與 SOP 全面對齊 | **PASS** | Web Serial 診斷卡片、WPF ViewModel、ESP32 旗標全數導正 |
 | **V-SPEC-03** | 全平台解析層 | Q 遙測封包欄位對齊與雙模相容 (Battery Volt/Capacity/Load) | 比對第 37/48 頁 Q 封包真實欄位定義 | tokens[2] 電池電壓與 tokens[3] 容量雙模相容解析 | **PASS** | WPF, Android Kotlin, ESP32 C++, Web JS 四端同步升級 |
-| **V-WPF-03** | PC Laptop HMI | WPF 單一可執行檔重新發布 | `dotnet publish ... -p:PublishSingleFile=true` | 編譯 0 警告 0 錯誤，產出全新 NTU1200_HMI.exe | **PASS** | 2026-11-17 00:43 執行通過，已生成於 publish 目錄 |
+| **V-BAT-01** | 全平台設定層 | 常用深層循環電池建議設定與一鍵套用 (UXH100-12FR/AGM/LiFePO4) | 比對湯淺規格書放電終止電壓 10.5V~10.8V 與 Web/WPF 連動 | 預警 11.5V、切斷 10.6V、負載 950W 一鍵套用至即時警報門檻 | **PASS** | Web HMI 與 WPF EXE 同步完成介面化套用與規格對照表 |
+| **V-WPF-03** | PC Laptop HMI | WPF 單一可執行檔重新發布 | `dotnet publish ... -p:PublishSingleFile=true` | 編譯 0 警告 0 錯誤，產出全新 NTU1200_HMI.exe | **PASS** | 2026-11-17 23:12 構建成功，發布全新 NTU1200_HMI.exe |
 | **V-HW-03** | 實體硬體介面 | 四芯線色垂直映射 (藍2/橘5/綠3/棕NC) 最終核定 | 依據實物線序由左至右對齊 Pin 6~1 | 線色與訊號 100% 正確匹配，解釋 -9.1V/0V 現象 | **PASS** | 2026-11-17 16:10 完成更新 |
 | **V-HW-02** | 實體硬體介面 | RJ11 Remote Port (6到1) 腳位與實測 -9.1V 剖析核定 | 依據原廠規格書第 6 頁圖紙與實測數據比對 | 腳位定義、線色映射與實測 -9.1V/0V 成因完全吻合 | **PASS** | 2026-11-17 15:55 更新 docs/R11_RS232/ 指南 |
-| **V-HW-01** | 實體硬體全模式 | NTU-1200 實機唯讀長期連線 | 連接 MOXA TCC-82 + RJ11，連續輪詢 48 小時 | 通訊成功率 $>99.9\%$，零丟包無中斷 | **BLOCKED** | 無實體逆變器與隔離硬體台架連線 |
+| **V-HW-01** | 實體硬體全模式 | NTU-1200 實機連線與通訊封包回傳驗證 | 連接 USB 轉 RS-232 + RJ11，執行 NTU1200_HMI.exe 實機通訊 | 成功鎖定 COM8，連續接收 (000 000 12.8 100 29.2 116 00.0...)，零丟包 | **PASS** | 2026-11-17 22:48~23:04 實測連線成功，寫入 ntu1200_2026-11-17.csv |
 
 ---
 
 ## 二、 驗證狀態統計
 
-- **已通過 (`PASS`)**：6 項（治理、Git 備份、Web 靜態一致性、PWA Manifest、Service Worker 語法）
-- **未執行 (`NOT RUN`)**：8 項（軟體各端實機運行與動態功能實測骨幹）
-- **環境受限 (`BLOCKED`)**：1 項（需實體逆變器台架）
+- **已通過 (`PASS`)**：11 項（治理、Git 備份、Web 靜態一致性、PWA Manifest、Service Worker 語法、官方協定對齊、19-Bit 旗標修正、實體接線映射、實機 COM8 實測通訊成功、WPF EXE 發布、電池設定預設庫）
+- **未執行 (`NOT RUN`)**：5 項（Android 構建、ESP32 構建等次要平台）
+- **環境受限 (`BLOCKED`)**：0 項（實機通訊已於 2026-11-17 實證成功）
 

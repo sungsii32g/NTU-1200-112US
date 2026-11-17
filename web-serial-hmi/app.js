@@ -1107,6 +1107,67 @@ document.getElementById('cardScenarioEmergencyStop')?.addEventListener('click', 
   );
 });
 
+// ==========================================
+// 常用深層循環電池建議設定與一鍵套用邏輯
+// ==========================================
+const batteryPresets = {
+  uxh100: {
+    warn: 11.5,
+    cutoff: 10.6,
+    overload: 950,
+    name: "湯淺 YUASA UXH100-12FR (推薦首選)",
+    desc: "12V 100Ah 難燃長壽命高率 AGM 鉛酸蓄電池"
+  },
+  agmgel: {
+    warn: 11.6,
+    cutoff: 10.8,
+    overload: 1000,
+    name: "常規 AGM / GEL 膠體深循環電池",
+    desc: "12V 100Ah~200Ah 工業蓄電池組"
+  },
+  lifepo4: {
+    warn: 12.5,
+    cutoff: 11.2,
+    overload: 1200,
+    name: "磷酸鐵鋰電池 (LiFePO4)",
+    desc: "12.8V 4S 100Ah~200Ah 鋰鐵電池組"
+  },
+  default: {
+    warn: 11.0,
+    cutoff: 10.0,
+    overload: 1200,
+    name: "明緯原廠出廠預設值",
+    desc: "MEAN WELL 原廠寬容度極限設定"
+  }
+};
+
+document.querySelectorAll('.btn-apply-preset').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    const key = e.target.getAttribute('data-preset');
+    const p = batteryPresets[key];
+    if (!p) return;
+
+    if (setpointLowWarn) setpointLowWarn.value = p.warn.toFixed(1);
+    if (setpointLowCutoff) setpointLowCutoff.value = p.cutoff.toFixed(1);
+    if (setpointOverload) setpointOverload.value = p.overload.toFixed(0);
+
+    lowBatWarnThreshold = p.warn;
+    lowBatCutoffThreshold = p.cutoff;
+    overloadWarnThreshold = p.overload;
+
+    // 切換 active 樣式
+    document.querySelectorAll('.battery-preset-box').forEach(box => box.classList.remove('preset-active'));
+    const parentBox = e.target.closest('.battery-preset-box');
+    if (parentBox) parentBox.classList.add('preset-active');
+
+    alert(`✅ 已成功一鍵套用【${p.name}】建議配置！\n` +
+          `• 低壓預警門檻: ${p.warn.toFixed(1)} V (剩餘約 25%~30% 提醒準備充電)\n` +
+          `• 低壓切斷門檻: ${p.cutoff.toFixed(1)} V (對齊原廠 10.5V~10.8V 放電終止線，防止硫化)\n` +
+          `• 負載容量警戒: ${p.overload} W (保護單顆 100Ah 電池在大電流下的溫升與壓降)\n\n` +
+          `此門檻已即時在即時監控畫面與警報系統中生效！`);
+  });
+});
+
 // 自訂安全門檻儲存與輪詢設定
 const btnSaveSetpoints = document.getElementById('btnSaveSetpoints');
 const setpointLowWarn = document.getElementById('setpointLowWarn');
