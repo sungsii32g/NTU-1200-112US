@@ -551,3 +551,45 @@
 - Git 備份標籤：`backup/NTU-1200-112US_20261117_230500`。
 - WPF 編譯與發布：`PASS`（0 警告、0 錯誤，已產出 NTU1200_HMI.exe）。
 - 實機 COM8 遙測通訊驗證：`PASS`（實測成功接收 Q 封包並寫入即時 CSV 日誌）。
+
+---
+
+## [2026-11-17 23:58:00] - 升級類比連續負載瓦數解析與 NTU-1200 硬體 EEPROM (W 指令) 固化寫入功能
+
+### 變更動機與問題根因
+1. **瓦數固定 300W 且跳躍遲緩**：
+   - 現場實際接收封包為 `(110 025 12.0 100 32.2 000 59.9 000 023 1000000000000000000)`。
+   - 原代碼讀取 `tokens[1]=025`，依據明緯規格書第 36 頁，該欄位為前面板 LED 數位階梯負載（0%, 25%, 50%, 75%, 100%），因此計算出的瓦數只會跳躍於 0W, 300W, 600W...。
+   - 真實連續類比採樣值位於 `tokens[8]=023`（23% = 276.0W）。
+2. **門檻設定未寫入硬體設備**：
+   - 原「儲存並套用警戒門檻」僅作用於上位機軟體變數，未發送明緯原廠 `W` 指令寫入逆變器內部 EEPROM。
+   - 查詢 `I\r` 讀取的是逆變器單晶片出廠固化的預設值（Alarm: 11.0V, Cutoff: 10.0V）。
+
+### 變更內容清單
+1. **類比連續瓦數解析升級**：
+   - `pc-laptop-hmi/Models/NtuTelemetry.cs`: 新增 `AnalogLoadPercent` 與 `DigitalLoadPercent` 欄位，優先以 `tokens[8]` 計算真實連續瓦數（`effectiveLoad * 12.0`）。
+   - `pc-laptop-hmi/ViewModels/MainViewModel.cs`: 綁定更新 `AnalogLoadPercent` 與 `DigitalLoadPercent`。
+   - `web-serial-hmi/app.js`、`app.js`、`docs/app.js`: 同步改採 `tokens[8]` 類比連續採樣計算即時瓦數，解決 300W 鎖死。
+   - `android-phone-hmi/protocol/src/main/kotlin/com/meanwell/ntu1200/protocol/NtuPacketParser.kt`: 同步支援 `tokens[8]` 連續類比瓦數計算。
+2. **硬體 EEPROM (W 指令) 固化寫入功能**：
+   - `pc-laptop-hmi/Services/SerialManager.cs`:
+     - 新增 `WriteHardwareEeprom(double alarmVolt, double shutdownVolt)` 方法。
+     - 實作明緯官方規格書第 42~45 頁標準 99 位元組 `W` 指令幀（帶 2-Byte Checksum 與 0x0D 結束符）。
+     - 自動保留現場設備原始序號、版本與 DIP 設定。
+     - 具備數值範圍校驗（$9.9\text{V} \sim 12.5\text{V}$, $9.7\text{V} \sim 12.0\text{V}$, 差值 $\ge 0.2\text{V}$）與背景 Q 輪詢 2 秒避碰保護。
+   - `pc-laptop-hmi/ViewModels/MainViewModel.cs`:
+     - 新增 `WriteHardwareEeprom()` 彈出式二次確認視窗與執行結果回饋。
+     - 明確區分「軟體即時告警防線」與「硬體 EEPROM 固化防線」。
+   - `pc-laptop-hmi/MainWindow.xaml`:
+     - 新增【⚡ 寫入逆變器硬體 EEPROM (W)】醒目紅色按鈕。
+     - 在「設備型號與 EEPROM 查詢 (`I\r` / `W`)」區域同步新增寫入按鈕。
+   - `index.html`、`web-serial-hmi/index.html`、`docs/index.html` 與對應 `app.js`:
+     - 同步新增 Web 版 `writeHardwareEeprom()` 函數與介面按鈕，支援 Web Serial 直寫實體 EEPROM。
+3. **二進位發布物生成**：
+   - 執行 `dotnet publish` 成功重新產出 `publish/NTU1200_HMI.exe`（2.33MB，零警告零錯誤）。
+
+### 驗證狀態
+- Git 備份標籤：`backup/NTU-1200-112US_20261117_233700`。
+- WPF 編譯發布：`PASS`（0 警告、0 錯誤，產出全新 NTU1200_HMI.exe）。
+- 類比連續瓦數解析：`PASS`（實測封包 `tokens[8]=023` 計算精確為 276.0W）。
+- Web Serial 與 Docs 三端同步：`PASS`。

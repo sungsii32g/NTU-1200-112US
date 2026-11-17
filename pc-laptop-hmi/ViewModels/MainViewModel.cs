@@ -91,6 +91,20 @@ public class MainViewModel : INotifyPropertyChanged
         set { _loadPercent = value; OnPropertyChanged(); }
     }
 
+    private int _digitalLoadPercent = 0;
+    public int DigitalLoadPercent
+    {
+        get => _digitalLoadPercent;
+        set { _digitalLoadPercent = value; OnPropertyChanged(); }
+    }
+
+    private int _analogLoadPercent = 0;
+    public int AnalogLoadPercent
+    {
+        get => _analogLoadPercent;
+        set { _analogLoadPercent = value; OnPropertyChanged(); }
+    }
+
     private double _temperature = 0.0;
     public double Temperature
     {
@@ -473,7 +487,48 @@ public class MainViewModel : INotifyPropertyChanged
 
     public void SaveThresholds()
     {
-        MessageBox.Show($"工程警戒門檻與通訊配置已儲存生效：\n• 電池低壓預警: {LowBatWarnThreshold:F1} V\n• 電池低壓切斷: {LowBatCutoffThreshold:F1} V\n• 電池過壓預警: {HighBatWarnThreshold:F1} V\n• 負載過載預警: {OverloadWarnThreshold:F0} W\n• 機溫過熱預警: {TempWarnThreshold:F1} °C\n• 輪詢刷新節奏: {SelectedPollRateMs} ms", "工程門檻配置儲存", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show(
+            $"【上位機即時軟體警戒防線已套用生效】\n" +
+            $"• 電池低壓預警: {LowBatWarnThreshold:F1} V (低於此值畫面顯示橘色預警並發出提示聲)\n" +
+            $"• 電池低壓切斷: {LowBatCutoffThreshold:F1} V (低於此值畫面顯示紅色切斷並發出警報聲)\n" +
+            $"• 電池過壓預警: {HighBatWarnThreshold:F1} V\n" +
+            $"• 負載過載容量: {OverloadWarnThreshold:F0} W\n" +
+            $"• 機溫過熱預警: {TempWarnThreshold:F1} °C\n" +
+            $"• 輪詢刷新節奏: {SelectedPollRateMs} ms\n\n" +
+            $"💡 提示：本按鈕為「上位機軟體防線」（電腦端即時監控警告，不磨損逆變器內部 EEPROM）。\n" +
+            $"若您需要將此防護門檻【真正永久固化寫入 NTU-1200 逆變器硬體晶片】，請點擊旁邊的『⚡ 寫入逆變器硬體 EEPROM (W)』按鈕！",
+            "上位機軟體警戒防線生效",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+    }
+
+    public void WriteHardwareEeprom()
+    {
+        var confirm = MessageBox.Show(
+            $"【⚠️ 警告：即將寫入逆變器硬體 EEPROM 固化晶片】\n\n" +
+            $"即將發送明緯原廠『W』指令 (99 Bytes 標準幀 + 2-Byte Checksum)，將以下電壓防護門檻直接寫入 NTU-1200 逆變器 MCU 內部 EEPROM：\n\n" +
+            $"• 低壓告警電壓 (Alarm Volt): {LowBatWarnThreshold:F1} V (原廠出廠預設: 11.0V)\n" +
+            $"• 低壓切斷電壓 (Shutdown Volt): {LowBatCutoffThreshold:F1} V (原廠出廠預設: 10.0V)\n\n" +
+            $"規格書第 45 頁限制條件確認：\n" +
+            $"1. 12.5V >= 告警電壓 > 停機電壓 >= 9.7V\n" +
+            $"2. 告警電壓 - 停機電壓 >= 0.2V\n\n" +
+            $"此動作會直接修改實體逆變器內部非揮發性記憶體，逆變器脫機或獨立供電時依然以此門檻執行蜂鳴告警與低壓停機切斷！\n\n" +
+            $"請問是否確定寫入硬體？",
+            "寫入逆變器硬體 EEPROM 確認",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (confirm != MessageBoxResult.Yes) return;
+
+        var res = _serialManager.WriteHardwareEeprom(LowBatWarnThreshold, LowBatCutoffThreshold);
+        if (res.success)
+        {
+            MessageBox.Show(res.message, "硬體 EEPROM 寫入成功", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        else
+        {
+            MessageBox.Show(res.message, "硬體 EEPROM 寫入失敗", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     public void ApplyBatteryPreset(string preset)
@@ -541,6 +596,8 @@ public class MainViewModel : INotifyPropertyChanged
             AcOutputVoltage = data.AcOutputVoltage;
             LoadWatts = data.LoadWatts;
             LoadPercent = data.LoadPercent;
+            AnalogLoadPercent = data.AnalogLoadPercent;
+            DigitalLoadPercent = data.DigitalLoadPercent;
             Temperature = data.Temperature;
             GridInputVoltage = data.GridInputVoltage;
             OutputFrequency = data.OutputFrequency;

@@ -4,6 +4,8 @@ public class NtuTelemetry
 {
     public double AcOutputVoltage { get; set; }
     public int LoadPercent { get; set; }
+    public int DigitalLoadPercent { get; set; }
+    public int AnalogLoadPercent { get; set; }
     public double LoadWatts { get; set; }
     public double BatteryVoltage { get; set; }
     public int BatteryCapacityPercent { get; set; }
@@ -57,10 +59,15 @@ public class NtuTelemetry
                 batVal = bv3;
             }
 
+            int digiLp = int.TryParse(tokens[1], out var lp) ? lp : 0;
+            int analogLp = (tokens.Length > 8 && int.TryParse(tokens[8], out var alp)) ? alp : digiLp;
+
             var model = new NtuTelemetry
             {
                 AcOutputVoltage = double.TryParse(tokens[0], out var ac) ? ac : 0.0,
-                LoadPercent = int.TryParse(tokens[1], out var lp) ? lp : 0,
+                DigitalLoadPercent = digiLp,
+                AnalogLoadPercent = analogLp,
+                LoadPercent = analogLp, // 優先採用類比連續負載%，避免 25% 階梯跳躍卡死 300W
                 BatteryVoltage = batVal,
                 BatteryCapacityPercent = batCap,
                 Temperature = double.TryParse(tokens[4], out var temp) ? temp : 0.0,
@@ -72,7 +79,8 @@ public class NtuTelemetry
                 Timestamp = DateTime.Now
             };
 
-            model.LoadWatts = Math.Round(model.LoadPercent * (1200.0 / 100.0), 1);
+            // 依據明緯官方規格書第 36 頁 tokens[8] (O/P Load Analog) 計算連續高解析瓦數
+            model.LoadWatts = Math.Round(model.AnalogLoadPercent * (1200.0 / 100.0), 1);
 
             var bitStr = tokens[9];
             model.RawBitString = bitStr;

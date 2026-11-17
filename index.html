@@ -577,12 +577,15 @@
             <input type="checkbox" id="chkAudioAlert" checked />
             <span>🔊 啟用異常蜂鳴器音效警報 (Web Audio Alert)</span>
           </label>
-          <div style="display:flex; gap:0.75rem;">
+          <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
             <button id="btnExportCsv" class="btn btn-secondary" title="將當前趨勢與遙測記錄匯出為 CSV 試算表">
               📥 匯出歷程 CSV
             </button>
-            <button id="btnSaveSetpoints" class="btn btn-primary" title="套用門檻至即時監控系統">
-              💾 儲存自訂門檻
+            <button id="btnSaveSetpoints" class="btn btn-primary" title="套用門檻至即時監控軟體系統">
+              💾 儲存軟體門檻
+            </button>
+            <button id="btnWriteHardwareEeprom" class="btn btn-danger" style="background:#dc2626; border-color:#ef4444;" title="依明緯手冊第 42~45 頁組裝 99-Byte W 指令將門檻直接永久固化寫入 NTU-1200 機身 EEPROM">
+              ⚡ 寫入逆變器硬體 EEPROM (W)
             </button>
           </div>
         </div>
@@ -607,8 +610,11 @@
         <!-- 設備資訊查詢 -->
         <section class="card">
           <div class="card-header">
-            <h2>ℹ️ 設備型號與韌體版本查詢 (`I\r`)</h2>
-            <button id="btnQueryInfo" class="btn btn-secondary">查詢設備 (I)</button>
+            <h2>ℹ️ 設備型號與韌體 EEPROM 查詢 (`I\r` / `W`)</h2>
+            <div style="display:flex; gap:0.5rem;">
+              <button id="btnQueryInfo" class="btn btn-secondary">查詢設備 (I)</button>
+              <button id="btnWriteEepromInfo" class="btn btn-danger" style="background:#dc2626; border-color:#ef4444;" title="依 W 指令將低壓門檻寫入 EEPROM">⚡ 寫入 EEPROM (W)</button>
+            </div>
           </div>
           <div class="info-terminal" id="deviceInfoBox">
             點擊「查詢設備」讀取逆變器型號與韌體版本...

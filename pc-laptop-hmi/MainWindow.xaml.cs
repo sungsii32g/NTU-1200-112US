@@ -126,6 +126,11 @@ public partial class MainWindow : Window
         ViewModel.SaveThresholds();
     }
 
+    private void BtnWriteHardwareEeprom_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.WriteHardwareEeprom();
+    }
+
     private void BtnApplyUXH100_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.ApplyBatteryPreset("uxh100");

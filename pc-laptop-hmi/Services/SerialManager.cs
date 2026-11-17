@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Ports;
 using System.Management;
@@ -28,6 +29,7 @@ public class SerialManager
 
     public string CurrentTargetPort { get; private set; } = "AUTO";
     public string ActivePortName { get; private set; } = "未連接";
+    public string? LastRawDeviceInfo { get; private set; }
     public bool IsConnected { get; private set; } = false;
     public bool IsStale { get; private set; } = false;
 
@@ -245,6 +247,138 @@ public class SerialManager
             catch (Exception ex)
             {
                 return (false, $"發送失敗: {ex.Message}");
+            }
+        }
+    }
+
+    public (bool success, string message) WriteHardwareEeprom(double alarmVolt, double shutdownVolt)
+    {
+        // 1. 依據手冊第 45 頁規則 (3) 檢驗數值邊界 (12V 機型範圍)
+        if (alarmVolt > 12.5 || alarmVolt < 9.9 || shutdownVolt > 12.0 || shutdownVolt < 9.7)
+        {
+            return (false, "數值超出明緯官方允許範圍：\n• 告警電壓需介於 9.9V ~ 12.5V 之間\n• 停機電壓需介於 9.7V ~ 12.0V 之間");
+        }
+        if (alarmVolt <= shutdownVolt)
+        {
+            return (false, "告警電壓 (Alarm Volt) 必須嚴格大於停機電壓 (Shutdown Volt)！");
+        }
+        if ((alarmVolt - shutdownVolt) < 0.199)
+        {
+            return (false, "依原廠規則，告警電壓與停機電壓之差值必須 >= 0.2V！");
+        }
+
+        var aStr = alarmVolt.ToString("00.0", CultureInfo.InvariantCulture);
+        var sStr = shutdownVolt.ToString("00.0", CultureInfo.InvariantCulture);
+
+        // 2. 處理模擬模式
+        if (CurrentTargetPort == "MOCK")
+        {
+            LastRawDeviceInfo = $"# 00.0 00.0 {aStr} {sStr} 00.0 MEANWELL LOC-0123456789 REV:01.3 NTU-1200-112 1 00/00/0000";
+            OnDeviceInfoReceived?.Invoke(LastRawDeviceInfo);
+            return (true, $"[模擬模式] 成功模擬寫入 EEPROM：\n• 告警電壓: {aStr} V\n• 停機電壓: {sStr} V");
+        }
+
+        lock (_lock)
+        {
+            if (_serialPort == null || !_serialPort.IsOpen)
+                return (false, "串列埠尚未建立連線，請先確認 COM 埠已連接！");
+
+            try
+            {
+                // 暫停背景 Q 輪詢 2 秒，避免指令交錯衝突
+                _pausePollingUntil = DateTime.Now.AddMilliseconds(2000);
+
+                // 若尚未讀取過設備資訊，先發送一次 I\r 取得目前硬體基底
+                if (string.IsNullOrEmpty(LastRawDeviceInfo) || LastRawDeviceInfo.Length < 80)
+                {
+                    _serialPort.DiscardInBuffer();
+                    var qryCmd = Encoding.ASCII.GetBytes("I\r");
+                    _serialPort.Write(qryCmd, 0, qryCmd.Length);
+                    OnTxPacket?.Invoke("I");
+                    Thread.Sleep(200);
+                    try
+                    {
+                        var iRes = _serialPort.ReadTo("\r").Trim();
+                        if (iRes.StartsWith("#"))
+                        {
+                            LastRawDeviceInfo = iRes;
+                            OnDeviceInfoReceived?.Invoke(iRes);
+                        }
+                    }
+                    catch { }
+                }
+
+                // 組裝 99 位元組標準 W 指令幀 (規格書第 42~45 頁)
+                byte[] frame = new byte[99];
+                if (!string.IsNullOrEmpty(LastRawDeviceInfo) && LastRawDeviceInfo.Length >= 80)
+                {
+                    var rawBytes = Encoding.ASCII.GetBytes(LastRawDeviceInfo);
+                    int copyLen = Math.Min(rawBytes.Length, 96);
+                    Array.Copy(rawBytes, frame, copyLen);
+                    for (int i = copyLen; i < 96; i++) frame[i] = 0x20;
+                }
+                else
+                {
+                    var baseStr = "   00.0 00.0 11.0 10.0 00.0 MEANWELL   LOC-0123456789      REV:01.3  NTU-1200-112  1 00/00/0000";
+                    var baseBytes = Encoding.ASCII.GetBytes(baseStr);
+                    Array.Copy(baseBytes, 0, frame, 1, Math.Min(baseBytes.Length, 95));
+                }
+
+                frame[0] = (byte)'W'; // 替換標頭為 W
+
+                // 寫入告警電壓與停機電壓 (固定各 4 位元組 ASCII，如 "11.5"、"10.6")
+                var aBytes = Encoding.ASCII.GetBytes(aStr);
+                var sBytes = Encoding.ASCII.GetBytes(sStr);
+                Array.Copy(aBytes, 0, frame, 14, Math.Min(aBytes.Length, 4));
+                frame[18] = 0x20;
+                Array.Copy(sBytes, 0, frame, 19, Math.Min(sBytes.Length, 4));
+                frame[23] = 0x20;
+
+                // 計算 2-Byte Checksum (累加第 0 到 95 位元組總和)
+                int sum = 0;
+                for (int i = 0; i < 96; i++) sum += frame[i];
+                frame[96] = (byte)((sum >> 8) & 0xFF);
+                frame[97] = (byte)(sum & 0xFF);
+                frame[98] = 0x0D; // CR
+
+                _serialPort.DiscardInBuffer();
+                _serialPort.Write(frame, 0, frame.Length);
+                OnTxPacket?.Invoke($"W [Alarm:{aStr}V, Cutoff:{sStr}V, CS:0x{sum:X4}]");
+
+                // 等候逆變器確認回應
+                Thread.Sleep(300);
+                string wResponse = "";
+                try
+                {
+                    wResponse = _serialPort.ReadTo("\r").Trim();
+                }
+                catch { }
+
+                if (!string.IsNullOrEmpty(wResponse))
+                {
+                    OnRxPacket?.Invoke(wResponse);
+                    if (wResponse.Contains("ERROR"))
+                    {
+                        return (false, $"逆變器 EEPROM 寫入拒絕: {wResponse}");
+                    }
+                    if (wResponse.StartsWith("#"))
+                    {
+                        LastRawDeviceInfo = wResponse;
+                        OnDeviceInfoReceived?.Invoke(wResponse);
+                        return (true, $"✅ 逆變器硬體 EEPROM 寫入成功！\n硬體已回覆確認最新配置：\n{wResponse}");
+                    }
+                }
+
+                // 隨後自動重新查詢一次 I 以確保狀態同步
+                Thread.Sleep(100);
+                var verifyCmd = Encoding.ASCII.GetBytes("I\r");
+                _serialPort.Write(verifyCmd, 0, verifyCmd.Length);
+
+                return (true, $"✅ 已發送 W 寫入指令 (99 Bytes, CS: 0x{sum:X4})！\n已排程發送『I』讀取驗證最新硬體狀態。");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"發送 W 指令失敗: {ex.Message}");
             }
         }
     }
@@ -470,6 +604,7 @@ public class SerialManager
         OnRxPacket?.Invoke(res);
         if (res.StartsWith("#"))
         {
+            LastRawDeviceInfo = res.Trim();
             OnDeviceInfoReceived?.Invoke(res);
         }
         else

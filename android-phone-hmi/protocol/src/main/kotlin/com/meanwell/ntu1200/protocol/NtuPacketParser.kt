@@ -38,7 +38,10 @@ object NtuPacketParser {
         try {
             val acOut = tokens[0].toFloatOrNull()
             val loadPct = tokens[1].toIntOrNull()
-            val loadWatts = if (loadPct != null) loadPct * (NtuCommandSpec.RATED_POWER_WATTS / 100.0f) else null
+            val loadAnalog = if (tokens.size > 8) tokens[8].toFloatOrNull() else null
+            val effectiveLoad = loadAnalog ?: loadPct?.toFloat()
+            // 依據手冊第 36 頁 tokens[8] 類比即時連續負載計算精確瓦數
+            val loadWatts = if (effectiveLoad != null) effectiveLoad * (NtuCommandSpec.RATED_POWER_WATTS / 100.0f) else null
             
             // 雙模相容：若 tokens[2] 帶小數點則為標準電池電壓 SS.S，tokens[3] 為電池容量 BBB；否則兼容舊格式
             val battVolt: Float?
@@ -85,7 +88,7 @@ object NtuPacketParser {
 
             return NtuTelemetryModel(
                 acOutputVoltage = Field(acOut, "V", acOut != null, nowMs),
-                loadPercent = Field(loadPct, "%", loadPct != null, nowMs),
+                loadPercent = Field(effectiveLoad?.toInt() ?: loadPct, "%", (effectiveLoad != null || loadPct != null), nowMs),
                 loadWatts = Field(loadWatts, "W", loadWatts != null, nowMs),
                 batteryVoltage = Field(battVolt, "V", battVolt != null, nowMs),
                 batteryCapacityPercent = Field(battCapacity, "%", battCapacity != null, nowMs),
@@ -93,6 +96,7 @@ object NtuPacketParser {
                 gridInputVoltage = Field(gridVolt, "V", gridVolt != null, nowMs),
                 outputFrequency = Field(freq, "Hz", freq != null, nowMs),
                 dcBusVoltage = Field(dcBus, "V", dcBus != null, nowMs),
+                loadAnalogPercent = Field(loadAnalog, "%", loadAnalog != null, nowMs),
                 loadAnalogPercent = Field(loadAnalog, "%", loadAnalog != null, nowMs),
                 isInverterActive = Field(invActive, "", invActive != null, nowMs),
                 isUtilityBypass = Field(utBypass, "", utBypass != null, nowMs),

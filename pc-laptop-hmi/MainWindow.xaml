@@ -731,7 +731,8 @@
 
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                 <CheckBox Content="🔊 啟用系統蜂鳴警報音" IsChecked="{Binding IsAudioAlertEnabled}" Foreground="White" VerticalAlignment="Center" Margin="0,0,16,0" />
-                                <Button Content="💾 儲存並套用警戒門檻" Click="BtnSaveThresholds_Click" Background="{StaticResource AccentCyan}" Style="{StaticResource IndustrialButton}" Margin="0,0,10,0" />
+                                <Button Content="💾 儲存套用軟體門檻" Click="BtnSaveThresholds_Click" Background="{StaticResource AccentCyan}" Style="{StaticResource IndustrialButton}" Margin="0,0,10,0" ToolTip="設定上位機即時軟體防線（免刷硬體，即時畫面警示與音效）" />
+                                <Button Content="⚡ 寫入逆變器硬體 EEPROM (W)" Click="BtnWriteHardwareEeprom_Click" Background="#DC2626" Foreground="White" Style="{StaticResource IndustrialButton}" Margin="0,0,10,0" ToolTip="依明緯手冊第 42~45 頁組裝 99-Byte W 指令幀，將低壓告警/停機門檻直接永久寫入 NTU-1200 實體機身 EEPROM 晶片" />
                                 <Button Content="📥 開啟日誌資料夾 / 匯出 CSV" Click="BtnOpenLogFolder_Click" Background="#1E293B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" Style="{StaticResource IndustrialButton}" />
                             </StackPanel>
                         </StackPanel>
@@ -786,8 +787,11 @@
                             <Border Grid.Column="1" Background="#0F172A" CornerRadius="10" Padding="14" BorderBrush="{StaticResource CardBorder}" BorderThickness="1">
                                 <StackPanel>
                                     <DockPanel Margin="0,0,0,8">
-                                        <TextBlock Text="🔍 逆變器硬體版本查詢 (`I\r`)" FontWeight="Bold" FontSize="13" Foreground="White" />
-                                        <Button DockPanel.Dock="Right" Content="查詢 (I)" Click="BtnQueryInfo_Click" Background="{StaticResource AccentCyan}" Style="{StaticResource IndustrialButton}" Padding="12,4" />
+                                        <TextBlock Text="🔍 逆變器硬體版本與 EEPROM (`I\r` / `W`)" FontWeight="Bold" FontSize="13" Foreground="White" />
+                                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                            <Button Content="查詢 (I)" Click="BtnQueryInfo_Click" Background="{StaticResource AccentCyan}" Style="{StaticResource IndustrialButton}" Padding="12,4" Margin="0,0,8,0" />
+                                            <Button Content="⚡ 寫入 EEPROM (W)" Click="BtnWriteHardwareEeprom_Click" Background="#DC2626" Foreground="White" Style="{StaticResource IndustrialButton}" Padding="10,4" ToolTip="將設定好的低壓告警/停機門檻以 W 指令寫入機身 EEPROM" />
+                                        </StackPanel>
                                     </DockPanel>
                                     <Border Background="#162032" CornerRadius="6" Padding="10" Margin="0,4,0,0">
                                         <TextBlock Text="{Binding DeviceInfoText}" FontFamily="Consolas" FontSize="12" FontWeight="Bold" Foreground="{StaticResource AccentCyan}" TextWrapping="Wrap" />

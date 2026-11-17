@@ -661,8 +661,11 @@ function parseAndRender(rawStr) {
   if (tokens.length < 10) return;
 
   const acOut = parseFloat(tokens[0]) || 0;
-  const loadPct = parseInt(tokens[1]) || 0;
-  const loadWatts = Math.round(loadPct * 12.0);
+  const digitalLoadPct = parseInt(tokens[1]) || 0;
+  const analogLoadPct = (tokens.length > 8 && !isNaN(parseInt(tokens[8]))) ? parseInt(tokens[8]) : digitalLoadPct;
+  const effectiveLoadPct = (tokens.length > 8 && !isNaN(parseInt(tokens[8]))) ? analogLoadPct : digitalLoadPct;
+  // 依據手冊第 36 頁 tokens[8] 類比即時連續負載% 計算精準瓦數，避免原本 tokens[1] 25% 階梯跳躍鎖死在 300W
+  const loadWatts = Math.round(effectiveLoadPct * 12.0);
 
   // 依據明緯官方手冊第 5.4 節第 37/48 頁標準規格：
   // tokens[0]: VVV 交流輸出電壓 (0~250Vac)
@@ -700,8 +703,8 @@ function parseAndRender(rawStr) {
   valAcVolt.textContent = `${acOut.toFixed(1)} V`;
   valLoadWatts.textContent = `${loadWatts}`;
   flowLoadWatts.textContent = `${loadWatts} W`;
-  valLoadPct.textContent = `${loadPct}`;
-  flowLoadPct.textContent = `${loadPct} % 額定`;
+  valLoadPct.textContent = `${effectiveLoadPct}`;
+  flowLoadPct.textContent = `${effectiveLoadPct} % (類比 ${analogLoadPct}% / 階梯 ${digitalLoadPct}%)`;
   valTemp.textContent = `${temp.toFixed(1)}`;
   flowGridVal.textContent = `${gridVolt.toFixed(1)} V`;
   valFreq.textContent = `${freq.toFixed(1)} Hz`;
@@ -1189,14 +1192,99 @@ if (btnSaveSetpoints) {
     isAudioAlertEnabled = chkAudioAlert.checked;
 
     resetPollingTimer();
-    alert(`✅ 自訂安全門檻與通訊節奏已儲存生效！\n` +
-          `• 低壓關斷門檻: ${lowBatCutoffThreshold.toFixed(1)} V\n` +
-          `• 低壓預警門檻: ${lowBatWarnThreshold.toFixed(1)} V\n` +
+    alert(`✅ 上位機即時軟體警戒防線已套用生效！\n` +
+          `• 低壓關斷門檻: ${lowBatCutoffThreshold.toFixed(1)} V (軟體紅色警示)\n` +
+          `• 低壓預警門檻: ${lowBatWarnThreshold.toFixed(1)} V (軟體橘色預警)\n` +
           `• 高壓過壓門檻: ${highBatWarnThreshold.toFixed(1)} V\n` +
-          `• 負載過載門檻: ${overloadWarnThreshold} W\n` +
+          `• 負載過載容量: ${overloadWarnThreshold} W\n` +
           `• 散熱過溫門檻: ${tempWarnThreshold.toFixed(1)} °C\n` +
           `• 輪詢通訊週期: ${selectedPollRateMs} ms\n` +
-          `• 異常蜂鳴警報: ${isAudioAlertEnabled ? '啟用' : '停用'}`);
+          `• 異常蜂鳴警報: ${isAudioAlertEnabled ? '啟用' : '停用'}\n\n` +
+          `💡 提示：此處為上位機即時軟體防線（免刷硬體，即時畫面音效警報）。\n若需永久寫入 NTU-1200 機身 EEPROM，請點擊【⚡ 寫入逆變器硬體 EEPROM (W)】！`);
+  });
+}
+
+// 依據手冊第 42~45 頁組裝 99-Byte 帶 Checksum 之 W 指令寫入逆變器 EEPROM
+async function writeHardwareEeprom(alarmVolt, shutdownVolt) {
+  if (alarmVolt > 12.5 || alarmVolt < 9.9 || shutdownVolt > 12.0 || shutdownVolt < 9.7) {
+    alert('電壓數值超出明緯官方允許範圍：\n• 告警電壓需介於 9.9V ~ 12.5V 之間\n• 停機電壓需介於 9.7V ~ 12.0V 之間');
+    return;
+  }
+  if (alarmVolt <= shutdownVolt) {
+    alert('告警電壓 (Alarm Volt) 必須嚴格大於停機電壓 (Shutdown Volt)！');
+    return;
+  }
+  if ((alarmVolt - shutdownVolt) < 0.199) {
+    alert('依原廠規格手冊規則，告警電壓與停機電壓之差值必須 >= 0.2V！');
+    return;
+  }
+
+  const confirmMsg = `【⚠️ 警告：即將寫入逆變器硬體 EEPROM 固化晶片】\n\n` +
+    `即將發送明緯原廠『W』指令 (99-Byte 標準幀 + 2-Byte Checksum)，將以下門檻直接永久寫入 NTU-1200 機身 EEPROM：\n\n` +
+    `• 低壓告警電壓 (Alarm Volt): ${alarmVolt.toFixed(1)} V (原廠出廠預設: 11.0V)\n` +
+    `• 低壓切斷電壓 (Shutdown Volt): ${shutdownVolt.toFixed(1)} V (原廠出廠預設: 10.0V)\n\n` +
+    `此為硬體永久寫入，逆變器脫離電腦時依然依此電壓蜂鳴預警與自動停機切斷！\n\n` +
+    `是否確定寫入實體設備？`;
+
+  if (!confirm(confirmMsg)) return;
+
+  const aStr = alarmVolt.toFixed(1);
+  const sStr = shutdownVolt.toFixed(1);
+
+  if (isDemoMode) {
+    const mockInfo = `# 00.0 00.0 ${aStr} ${sStr} 00.0 MEANWELL LOC-0123456789 REV:01.3 NTU-1200-112 1 00/00/0000`;
+    deviceInfoBox.textContent = mockInfo;
+    alert(`[模擬展示模式] 成功模擬寫入 EEPROM：\n• 告警電壓: ${aStr} V\n• 停機電壓: ${sStr} V`);
+    return;
+  }
+
+  // 99 位元組陣列
+  const frame = new Uint8Array(99);
+  const baseStr = "   00.0 00.0 11.0 10.0 00.0 MEANWELL   LOC-0123456789      REV:01.3  NTU-1200-112  1 00/00/0000";
+  for (let i = 0; i < 96; i++) {
+    frame[i] = (i < baseStr.length) ? baseStr.charCodeAt(i) : 0x20;
+  }
+  frame[0] = 0x57; // 'W'
+
+  // 寫入 aStr 與 sStr
+  for (let i = 0; i < aStr.length && i < 4; i++) {
+    frame[14 + i] = aStr.charCodeAt(i);
+  }
+  frame[18] = 0x20;
+  for (let i = 0; i < sStr.length && i < 4; i++) {
+    frame[19 + i] = sStr.charCodeAt(i);
+  }
+  frame[23] = 0x20;
+
+  // 2-Byte Checksum
+  let sum = 0;
+  for (let i = 0; i < 96; i++) sum += frame[i];
+  frame[96] = (sum >> 8) & 0xFF;
+  frame[97] = sum & 0xFF;
+  frame[98] = 0x0D; // CR
+
+  await sendCommand(frame);
+  alert(`✅ 已發送 W 寫入指令 (99 Bytes, CS: 0x${sum.toString(16).toUpperCase().padStart(4, '0')})！\n即將發送 I 指令讀取驗證硬體狀態。`);
+  setTimeout(async () => {
+    await sendCommand('I\r');
+  }, 400);
+}
+
+const btnWriteHardwareEeprom = document.getElementById('btnWriteHardwareEeprom');
+if (btnWriteHardwareEeprom) {
+  btnWriteHardwareEeprom.addEventListener('click', async () => {
+    const warnV = parseFloat(setpointLowWarn.value) || 11.0;
+    const cutoffV = parseFloat(setpointLowCutoff.value) || 10.0;
+    await writeHardwareEeprom(warnV, cutoffV);
+  });
+}
+
+const btnWriteEepromInfo = document.getElementById('btnWriteEepromInfo');
+if (btnWriteEepromInfo) {
+  btnWriteEepromInfo.addEventListener('click', async () => {
+    const warnV = parseFloat(setpointLowWarn.value) || 11.0;
+    const cutoffV = parseFloat(setpointLowCutoff.value) || 10.0;
+    await writeHardwareEeprom(warnV, cutoffV);
   });
 }
 
