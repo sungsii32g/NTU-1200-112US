@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=1.0.6">
   <link rel="icon" type="image/png" href="logo.png">
   <!-- PWA 核心描述與行動裝置原生獨立視窗體驗 (Standalone) -->
   <link rel="manifest" href="manifest.json">
@@ -401,191 +401,156 @@
       </section>
 
       <!-- 4. 常用深層循環電池建議設定與一鍵套用 (Deep Cycle Battery Presets) -->
-      <section class="card battery-preset-card">
-        <div class="card-header">
-          <h2>🔋 常用深層循環電池建議設定與一鍵套用 (Deep Cycle Battery Presets)</h2>
-          <span class="lock-tag" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); border: 1px solid rgba(6, 182, 212, 0.3);">⚡ 點擊一鍵填入推薦參數</span>
-        </div>
-        <p class="section-desc">依據電池化學特徵與放電終止特性，一鍵切換最佳化安全低壓保護與負載容量門檻，避免鉛酸蓄電池極板硫化損毀：</p>
-        
-        <!-- 一鍵套用卡片矩陣 -->
-        <div class="battery-preset-grid">
-          <!-- 預設 1: 湯淺 UXH100-12FR -->
-          <div class="battery-preset-box preset-active" id="boxPresetUXH100">
-            <div class="preset-badge">🏆 本機推薦首選</div>
-            <div class="preset-name">湯淺 YUASA UXH100-12FR</div>
-            <div class="preset-type">12V 100Ah 難燃長壽命高率 AGM 鉛酸</div>
-            <div class="preset-values">
-              <span class="p-val">低壓預警: <strong>11.5 V</strong></span>
-              <span class="p-val">低壓切斷: <strong>10.6 V</strong></span>
-              <span class="p-val">過載容量: <strong>950 W</strong></span>
-            </div>
-            <button class="btn btn-primary btn-apply-preset" data-preset="uxh100" style="margin-top:0.4rem; width:100%;">⚡ 一鍵套用 UXH100 設定</button>
-          </div>
-
-          <!-- 預設 2: 常規 AGM / GEL -->
-          <div class="battery-preset-box" id="boxPresetAgmGel">
-            <div class="preset-badge badge-gray">常規標準</div>
-            <div class="preset-name">常規 AGM / GEL 膠體深循環</div>
-            <div class="preset-type">12V 100Ah ~ 200Ah 工業蓄電池組</div>
-            <div class="preset-values">
-              <span class="p-val">低壓預警: <strong>11.6 V</strong></span>
-              <span class="p-val">低壓切斷: <strong>10.8 V</strong></span>
-              <span class="p-val">過載容量: <strong>1000 W</strong></span>
-            </div>
-            <button class="btn btn-outline btn-apply-preset" data-preset="agmgel" style="margin-top:0.4rem; width:100%;">套用常規 AGM/GEL</button>
-          </div>
-
-          <!-- 預設 3: 磷酸鐵鋰 -->
-          <div class="battery-preset-box" id="boxPresetLiFePO4">
-            <div class="preset-badge badge-blue">大功率長效</div>
-            <div class="preset-name">磷酸鐵鋰電池 (LiFePO4)</div>
-            <div class="preset-type">12.8V 4S 100Ah ~ 200Ah 鋰鐵電池組</div>
-            <div class="preset-values">
-              <span class="p-val">低壓預警: <strong>12.5 V</strong></span>
-              <span class="p-val">低壓切斷: <strong>11.2 V</strong></span>
-              <span class="p-val">過載容量: <strong>1200 W</strong></span>
-            </div>
-            <button class="btn btn-outline btn-apply-preset" data-preset="lifepo4" style="margin-top:0.4rem; width:100%;">套用磷酸鐵鋰</button>
-          </div>
-
-          <!-- 預設 4: 明緯原廠預設 -->
-          <div class="battery-preset-box" id="boxPresetDefault">
-            <div class="preset-badge badge-amber">出廠極限</div>
-            <div class="preset-name">明緯原廠出廠預設值</div>
-            <div class="preset-type">MEAN WELL 原廠寬容度極限設定</div>
-            <div class="preset-values">
-              <span class="p-val">低壓預警: <strong>11.0 V</strong></span>
-              <span class="p-val">低壓切斷: <strong>10.0 V</strong></span>
-              <span class="p-val">過載容量: <strong>1200 W</strong></span>
-            </div>
-            <button class="btn btn-outline btn-apply-preset" data-preset="default" style="margin-top:0.4rem; width:100%;">恢復原廠預設值</button>
-          </div>
+      <section class="card" style="margin-bottom: 1rem;">
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+          <h2 style="font-size:0.95rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:0.4rem; margin:0;">
+            🔋 常用深層循環電池建議設定與一鍵套用 (Deep Cycle Battery Presets)
+          </h2>
+          <span style="font-size:0.75rem; color:var(--accent-cyan); font-weight:600;">
+            點擊立即自動寫入最佳化低壓防護與負載警戒門檻
+          </span>
         </div>
 
-        <!-- 規格書深入分析與設定依據詳細說明表 -->
-        <div class="battery-guide-table-wrapper">
-          <div class="guide-table-title">📋 為什麼 UXH100-12FR 建議這樣設定？（依原廠性能規格書科學分析）</div>
-          <table class="battery-guide-table">
+        <!-- 一鍵套用預設按鈕排 (Pill Buttons) -->
+        <div class="battery-preset-pills">
+          <button type="button" class="battery-pill-btn active" data-preset="uxh100" id="btnPillUXH100">
+            🏆 湯淺 UXH100-12FR (首選: 11.5V / 10.6V / 950W)
+          </button>
+          <button type="button" class="battery-pill-btn" data-preset="agmgel" id="btnPillAgmGel">
+            🔋 常規 AGM / GEL (11.6V / 10.8V / 1000W)
+          </button>
+          <button type="button" class="battery-pill-btn border-cyan" data-preset="lifepo4" id="btnPillLiFePO4">
+            ⚡ 磷酸鐵鋰 LiFePO4 (12.5V / 11.2V / 1200W)
+          </button>
+          <button type="button" class="battery-pill-btn" data-preset="default" id="btnPillDefault">
+            🏭 明緯出廠原廠預設 (11.0V / 10.0V / 1200W)
+          </button>
+        </div>
+
+        <!-- 規格書深入分析與設定依據詳細說明表 (Card / Grid) -->
+        <div class="pc-inner-card">
+          <div class="pc-guide-title">📋 為什麼 UXH100-12FR 建議這樣設定？（依原廠性能規格書科學分析）</div>
+          
+          <!-- 項目對照表 -->
+          <table class="pc-guide-table">
             <thead>
               <tr>
-                <th>監控項目</th>
-                <th>原廠預設值</th>
-                <th>UXH100-12FR 建議設定</th>
-                <th>規格依據與工程保護原理</th>
+                <th style="width: 18%;">監控項目</th>
+                <th style="width: 14%;">原廠預設值</th>
+                <th style="width: 22%; color: var(--accent-cyan);">UXH100-12FR 建議</th>
+                <th style="width: 46%;">規格書設定依據與保護原理</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td><strong>電池低壓預警 (V)</strong></td>
+                <td style="font-weight: 600; color: #fff;">電池低壓預警 (V)</td>
                 <td>11.0 V</td>
-                <td><span class="highlight-cyan">11.5 V ～ 11.6 V</span></td>
-                <td>提醒電量已進入後段（約剩餘 25%～30%），該準備市電回充或提早減載，避免突然斷電跳機。</td>
+                <td class="pc-text-cyan font-bold">11.5 V ～ 11.6 V</td>
+                <td>提醒電量已進入後段（剩餘約 25%~30%），該準備市電回充或提早減載防突然跳機。</td>
               </tr>
               <tr>
-                <td><strong>電池低壓切斷 (V)</strong></td>
+                <td style="font-weight: 600; color: #fff;">電池低壓切斷 (V)</td>
                 <td>10.0 V</td>
-                <td><span class="highlight-green">10.6 V ～ 10.8 V</span></td>
-                <td><strong>對齊原廠 5~20 小時放電終止線 (10.50V~10.80V)</strong>。常規放電若低於 10.0V 會導致鉛酸極板快速硫酸鹽化，電池壽命大幅折損。</td>
+                <td class="pc-text-green font-bold">10.6 V ～ 10.8 V</td>
+                <td>對齊原廠 5~20 小時放電終止線 (10.50V~10.80V)，徹底防止鉛酸極板硫酸鹽化。</td>
               </tr>
               <tr>
-                <td><strong>負載過載容量 (W)</strong></td>
+                <td style="font-weight: 600; color: #fff;">負載過載容量 (W)</td>
                 <td>1200 W</td>
-                <td><span class="highlight-amber">900 W ～ 1000 W</span></td>
-                <td>單顆 100Ah 電池長期抽載超過 1000W（放電電流達 90A+），內阻壓降與溫升顯著，建議上限設 900W~1000W 以策安全。</td>
+                <td class="pc-text-amber font-bold">900 W ～ 1000 W</td>
+                <td>單顆 100Ah 電池長期抽載超過 1000W（電流 90A+）壓降溫升較大，上限設 950W 為宜。</td>
               </tr>
             </tbody>
           </table>
 
-          <div class="battery-extra-tips">
-            <div class="tip-card">
-              <div class="tip-header">⏱️ 不同負載瓦數下的續航與電壓參考（25°C 滿電狀態）</div>
-              <ul class="tip-list">
-                <li><strong>輕載（約 110W ～ 210W）</strong>：放電至 10.8V 約可維持 <strong>5 ～ 10 小時</strong>。電壓下跌平緩，建議預警設 <strong>11.6 V</strong>、切斷設 <strong>10.8 V</strong>。</li>
-                <li><strong>中載（約 450W）</strong>：放電至 10.8V 約可維持 <strong>2 小時</strong>。建議預警設 <strong>11.5 V</strong>、切斷設 <strong>10.6 V</strong>。</li>
-                <li><strong>重載（約 800W）</strong>：放電至 10.8V 約可維持 <strong>1 小時</strong>。大電流下電池內阻（約 5mΩ）與線阻壓降較大，切斷設 <strong>10.5 V ～ 10.6 V</strong> 避免提早跳機。</li>
-              </ul>
+          <!-- 續航與回充提示 -->
+          <div class="pc-extra-cards">
+            <div class="pc-extra-card">
+              <div class="pc-extra-title pc-title-cyan">⏱️ 負載續航參考 (25°C 滿電狀態)</div>
+              <div class="pc-extra-item">• 輕載 (110W~210W)：至 10.8V 約 5~10 小時，預警 11.6V / 切斷 10.8V</div>
+              <div class="pc-extra-item">• 中載 (約 450W)：至 10.8V 約 2 小時，預警 11.5V / 切斷 10.6V</div>
+              <div class="pc-extra-item">• 重載 (約 800W)：至 10.8V 約 1 小時，內阻壓降大，切斷設 10.5V~10.6V</div>
             </div>
-            <div class="tip-card">
-              <div class="tip-header">🔌 外部充電器或市電浮充回充重要提醒</div>
-              <ul class="tip-list">
-                <li><strong>標準浮充電壓</strong>：25°C 環境下為 <strong>13.65 V ± 0.15 V</strong>（13.50V ～ 13.80V 區間）。</li>
-                <li><strong>最大充電電流限制</strong>：請嚴格限制在 <strong>25 A 以下（0.25 CA）</strong>，切勿使用超過 25A 的快充電流，以免電池內部失水發熱或鼓脹損壞。</li>
-              </ul>
+            <div class="pc-extra-card">
+              <div class="pc-extra-title pc-title-amber">🔌 浮充與回充規格提醒</div>
+              <div class="pc-extra-item">• 標準浮充電壓：25°C 下為 13.65 V ± 0.15 V (13.50V ~ 13.80V)</div>
+              <div class="pc-extra-item">• 最大充電電流限制：嚴格限制 ≤ 25 A (0.25CA)，切勿快充防失水鼓脹</div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- 5. 系統安全警戒門檻與通訊節奏自訂 -->
-      <section class="card">
-        <div class="card-header">
-          <h2>🛡️ 系統安全警戒門檻與通訊節奏自訂 (Custom Alarm Setpoints & Polling)</h2>
-          <span class="terminal-hint">可直接微調各項警報觸發數值，支援即時評估與蜂鳴器警報</span>
+      <!-- 5. 系統安全警戒門檻與通訊節奏自訂 (Custom Alarm Setpoints) -->
+      <section class="card" style="margin-bottom: 1rem;">
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.75rem;">
+          <h2 style="font-size:0.95rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:0.4rem; margin:0;">
+            🔔 系統安全警戒門檻與通訊節奏自訂 (Custom Alarm Setpoints)
+          </h2>
+          <span style="font-size:0.75rem; color:var(--accent-amber); font-weight:600;">
+            可動態設定現場監控門檻，即時觸發音效與視覺告警
+          </span>
         </div>
-        <p class="section-desc">依據現場電池容量或特定設備負載微調告警數值，避免誤報並精準保護電池組：</p>
-        <div class="setpoints-grid">
-          <div class="setpoint-card">
-            <span class="setpoint-label">電池低壓預警門檻</span>
-            <div class="setpoint-input-group">
-              <input type="number" id="setpointLowWarn" class="setpoint-input" value="11.0" step="0.1" min="9.0" max="14.0" />
-              <span class="setpoint-unit">V</span>
-            </div>
+
+        <!-- 5 大設定項網格 (與 PC 版 100% 完全對齊) -->
+        <div class="pc-setpoints-grid">
+          <!-- 設定項 1: 低壓預警 -->
+          <div class="pc-setpoint-card">
+            <div class="pc-setpoint-label">電池低壓預警 (V)</div>
+            <input type="number" id="setpointLowWarn" class="pc-setpoint-input pc-text-amber" value="11.5" step="0.1" min="9.0" max="14.0" />
+            <div class="pc-setpoint-sub">原廠建議: 11.0 V</div>
           </div>
-          <div class="setpoint-card">
-            <span class="setpoint-label">電池低壓關斷門檻</span>
-            <div class="setpoint-input-group">
-              <input type="number" id="setpointLowCutoff" class="setpoint-input" value="10.0" step="0.1" min="9.0" max="13.0" />
-              <span class="setpoint-unit">V</span>
-            </div>
+
+          <!-- 設定項 2: 低壓切斷 -->
+          <div class="pc-setpoint-card">
+            <div class="pc-setpoint-label">電池低壓切斷 (V)</div>
+            <input type="number" id="setpointLowCutoff" class="pc-setpoint-input pc-text-red" value="10.6" step="0.1" min="9.0" max="13.0" />
+            <div class="pc-setpoint-sub">原廠建議: 10.0 V</div>
           </div>
-          <div class="setpoint-card">
-            <span class="setpoint-label">電池高壓過壓門檻</span>
-            <div class="setpoint-input-group">
-              <input type="number" id="setpointHighWarn" class="setpoint-input" value="15.5" step="0.1" min="14.0" max="18.0" />
-              <span class="setpoint-unit">V</span>
-            </div>
+
+          <!-- 設定項 3: 過載容量 -->
+          <div class="pc-setpoint-card">
+            <div class="pc-setpoint-label">負載過載容量 (W)</div>
+            <input type="number" id="setpointOverload" class="pc-setpoint-input pc-text-amber" value="950" step="10" min="500" max="2000" />
+            <div class="pc-setpoint-sub">連續額定: 1200 W</div>
           </div>
-          <div class="setpoint-card">
-            <span class="setpoint-label">負載過載警戒門檻</span>
-            <div class="setpoint-input-group">
-              <input type="number" id="setpointOverload" class="setpoint-input" value="1200" step="50" min="500" max="2000" />
-              <span class="setpoint-unit">W</span>
-            </div>
+
+          <!-- 設定項 4: 機溫警戒 -->
+          <div class="pc-setpoint-card">
+            <div class="pc-setpoint-label">內部過溫警戒 (°C)</div>
+            <input type="number" id="setpointTemp" class="pc-setpoint-input pc-text-amber" value="55.0" step="0.5" min="35" max="80" />
+            <div class="pc-setpoint-sub">安全上限: 65.0 °C</div>
           </div>
-          <div class="setpoint-card">
-            <span class="setpoint-label">散熱器溫度預警門檻</span>
-            <div class="setpoint-input-group">
-              <input type="number" id="setpointTemp" class="setpoint-input" value="55.0" step="1" min="35" max="80" />
-              <span class="setpoint-unit">°C</span>
-            </div>
-          </div>
-          <div class="setpoint-card">
-            <span class="setpoint-label">RS-232 輪詢頻率</span>
-            <div class="setpoint-input-group">
-              <select id="selectPollRate" class="styled-select" style="width:100%; padding:0.35rem 0.6rem;">
-                <option value="500" selected>500 ms (高速即時)</option>
-                <option value="1000">1000 ms (標準平衡)</option>
-                <option value="2000">2000 ms (低負載節能)</option>
-              </select>
-            </div>
+
+          <!-- 設定項 5: 輪詢節奏 -->
+          <div class="pc-setpoint-card">
+            <div class="pc-setpoint-label">輪詢刷新頻率 (ms)</div>
+            <select id="selectPollRate" class="pc-setpoint-select">
+              <option value="500" selected>500</option>
+              <option value="1000">1000</option>
+              <option value="2000">2000</option>
+            </select>
+            <div class="pc-setpoint-sub">預設: 500 ms (原廠規範)</div>
           </div>
         </div>
 
+        <!-- 隱藏的高壓過壓門檻，供底層通訊與邏輯相容 -->
+        <input type="hidden" id="setpointHighWarn" value="15.5" />
+
+        <!-- 底部操作列 (對齊 PC 版) -->
         <div class="setpoints-actions-bar">
           <label class="toggle-switch-label">
             <input type="checkbox" id="chkAudioAlert" checked />
-            <span>🔊 啟用異常蜂鳴器音效警報 (Web Audio Alert)</span>
+            <span>🔊 啟用系統蜂鳴警報音</span>
           </label>
-          <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-            <button id="btnExportCsv" class="btn btn-secondary" title="將當前趨勢與遙測記錄匯出為 CSV 試算表">
-              📥 匯出歷程 CSV
+          <div style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap;">
+            <button id="btnSaveSetpoints" class="btn btn-primary" style="background:var(--accent-cyan); border-color:#22d3ee; color:#0f172a; font-weight:bold;" title="設定上位機即時軟體防線（免刷硬體，即時畫面警示與音效）">
+              💾 儲存套用軟體門檻
             </button>
-            <button id="btnSaveSetpoints" class="btn btn-primary" title="套用門檻至即時監控軟體系統">
-              💾 儲存軟體門檻
-            </button>
-            <button id="btnWriteHardwareEeprom" class="btn btn-danger" style="background:#dc2626; border-color:#ef4444;" title="依明緯手冊第 42~45 頁組裝 99-Byte W 指令將門檻直接永久固化寫入 NTU-1200 機身 EEPROM">
+            <button id="btnWriteHardwareEeprom" class="btn btn-danger" style="background:#dc2626; border-color:#ef4444; color:#fff; font-weight:bold;" title="依明緯手冊第 42~45 頁組裝 99-Byte W 指令幀，將低壓告警/停機門檻直接永久寫入 NTU-1200 實體機身 EEPROM 晶片">
               ⚡ 寫入逆變器硬體 EEPROM (W)
+            </button>
+            <button id="btnExportCsv" class="btn btn-secondary" style="background:#1e293b; border-color:var(--card-border); color:var(--text-muted);" title="開啟日誌資料夾或將當前遙測記錄匯出為 CSV 試算表">
+              📥 開啟日誌資料夾 / 匯出 CSV
             </button>
           </div>
         </div>
@@ -730,6 +695,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=1.0.6"></script>
 </body>
 </html>

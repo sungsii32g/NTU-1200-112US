@@ -36,12 +36,13 @@
 | **V-EEPROM-01** | 全平台協定層 | 硬體 EEPROM 寫入按鈕與 W 指令幀組裝 | 依手冊第 42~45 頁組裝 99 位元組標準 W 指令幀與 2-Byte Checksum | 完整保留現場機型序號/版本，帶入低壓告警/停機電壓，具備 9.9~12.5V 邊界與差值>=0.2V 防呆驗證 | **PASS** | WPF 與 Web Serial 同步提供雙重防呆警告與即時 EEPROM 寫入功能 |
 | **V-WPF-04** | PC Laptop HMI | WPF 單一可執行檔重新發布 | `dotnet publish ... -p:PublishSingleFile=true` | 編譯 0 警告 0 錯誤，產出全新 NTU1200_HMI.exe (2.33MB) | **PASS** | 2026-11-17 23:56 構建成功，發布全新 NTU1200_HMI.exe |
 | **V-WEB-05** | Web Serial HMI | Web Serial 類比瓦數與 EEPROM 寫入同步 | 檢查根目錄、web-serial-hmi/、docs/ 三端代碼同步 | 三目錄 HTML/JS/CSS 鏡像完全一致，支援類比連續負載與 W 指令 | **PASS** | 2026-11-17 23:55 三端代碼同步完成 |
+| **V-WEB-06** | Web Serial HMI | 電池建議設定與警戒門檻 100% 對齊 PC 版 | 比對 PC WPF 版 4 大 Pill 按鈕與 5 欄警戒網格佈局 | 結構、文字、顏色、互動與 EEPROM 按鈕 100% 完全對齊 | **PASS** | 2026-11-18 10:55 根目錄、web-serial-hmi/、docs/ 鏡像更新，PWA 快取版本升級至 v1.0.6 |
 
 ---
 
 ## 二、 驗證狀態統計
 
-- **已通過 (`PASS`)**：15 項（治理、Git 備份、Web 靜態一致性、PWA Manifest、Service Worker 語法、官方協定對齊、19-Bit 旗標修正、實體接線映射、實機 COM8 實測通訊成功、WPF EXE 發布、電池設定預設庫、類比連續瓦數解析、硬體 EEPROM 寫入功能、Web 端代碼同步）
+- **已通過 (`PASS`)**：16 項（治理、Git 備份、Web 靜態一致性、PWA Manifest、Service Worker 語法、官方協定對齊、19-Bit 旗標修正、實體接線映射、實機 COM8 實測通訊成功、WPF EXE 發布、電池設定預設庫、類比連續瓦數解析、硬體 EEPROM 寫入功能、Web 端代碼同步、Web 與 PC 控制項完全對齊）
 - **未執行 (`NOT RUN`)**：5 項（Android 構建、ESP32 構建等次要平台）
 - **環境受限 (`BLOCKED`)**：0 項（實機通訊已於 2026-11-17 實證成功）
 

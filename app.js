@@ -17,11 +17,11 @@ let historyPoints = []; // 60s 趨勢圖 (vbat, watts)
 let pendingConfirmAction = null;
 let currentBitString = '0000000000000000000';
 
-// 可介面化自訂之安全門檻與通訊節奏
-let lowBatWarnThreshold = 11.0;
-let lowBatCutoffThreshold = 10.0;
+// 可介面化自訂之安全門檻與通訊節奏 (預設對齊 UXH100-12FR 首選設定)
+let lowBatWarnThreshold = 11.5;
+let lowBatCutoffThreshold = 10.6;
 let highBatWarnThreshold = 15.5;
-let overloadWarnThreshold = 1200.0;
+let overloadWarnThreshold = 950.0;
 let tempWarnThreshold = 55.0;
 let selectedPollRateMs = 500;
 let isAudioAlertEnabled = true;
@@ -1144,9 +1144,10 @@ const batteryPresets = {
   }
 };
 
-document.querySelectorAll('.btn-apply-preset').forEach(btn => {
+document.querySelectorAll('[data-preset]').forEach(btn => {
   btn.addEventListener('click', (e) => {
-    const key = e.target.getAttribute('data-preset');
+    const target = e.currentTarget;
+    const key = target.getAttribute('data-preset');
     const p = batteryPresets[key];
     if (!p) return;
 
@@ -1158,9 +1159,13 @@ document.querySelectorAll('.btn-apply-preset').forEach(btn => {
     lowBatCutoffThreshold = p.cutoff;
     overloadWarnThreshold = p.overload;
 
-    // 切換 active 樣式
+    // 切換按鈕排 active 樣式 (對齊 PC 版)
+    document.querySelectorAll('.battery-pill-btn').forEach(b => b.classList.remove('active'));
+    target.classList.add('active');
+
+    // 切換相容 box 樣式
     document.querySelectorAll('.battery-preset-box').forEach(box => box.classList.remove('preset-active'));
-    const parentBox = e.target.closest('.battery-preset-box');
+    const parentBox = target.closest('.battery-preset-box');
     if (parentBox) parentBox.classList.add('preset-active');
 
     alert(`✅ 已成功一鍵套用【${p.name}】建議配置！\n` +
